@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Управление контентом</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 24px;
+        }
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: white;
+            color: #667eea;
+        }
+        .btn-primary:hover {
+            background: #f0f0f0;
+        }
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #218838;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+        }
+        .sidebar {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+        .main-content {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: bold;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .checkbox-group input {
+            width: auto;
+        }
+        .tree-container {
+            max-height: 800px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 10px;
+        }
+        .tree-item {
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .tree-item:hover {
+            background: #f5f5f5;
+        }
+        .tree-item.selected {
+            background: #667eea;
+            color: white;
+        }
+        .tree-item.permanent {
+            border-left: 3px solid #28a745;
+        }
+        .tree-children {
+            margin-left: 20px;
+        }
+        .tree-toggle {
+            cursor: pointer;
+            user-select: none;
+            width: 20px;
+            text-align: center;
+            display: inline-block;
+        }
+        .tree-toggle.collapsed::before {
+            content: '▶';
+            font-size: 10px;
+        }
+        .tree-toggle.expanded::before {
+            content: '▼';
+            font-size: 10px;
+        }
+        .tree-children.hidden {
+            display: none;
+        }
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 10px;
+        }
+        .image-item {
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 5px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .image-item:hover {
+            border-color: #667eea;
+        }
+        .image-item.selected {
+            border-color: #28a745;
+            background: #efe;
+        }
+        .image-item img {
+            width: 100%;
+            height: 80px;
+            object-fit: contain;
+        }
+        .image-item span {
+            display: block;
+            font-size: 11px;
+            margin-top: 5px;
+            word-break: break-all;
+        }
+        .status-message {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+        }
+        .tab.active {
+            border-bottom-color: #667eea;
+            color: #667eea;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .parser-status {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .parser-status.running {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+        }
+        .parser-status.completed {
+            background: #d4edda;
+            border: 1px solid #28a745;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .search-box {
+            margin-bottom: 15px;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .parent-list {
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 5px;
+        }
+        .parent-item {
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .parent-item:hover {
+            background: #f5f5f5;
+        }
+        .parent-item.selected {
+            background: #667eea;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Управление контентом</h1>
+        <div class="header-actions">
+            <button class="btn btn-primary" onclick="window.location.href='/'">На сайт</button>
+            <button class="btn btn-success" onclick="startParser()">Парсер</button>
+            <button class="btn btn-primary" onclick="exportJson()">Выгрузить JSON</button>
+            <button class="btn btn-primary" onclick="changePassword()">Сменить пароль</button>
+            <button class="btn btn-danger" onclick="logout()">Выйти</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="sidebar">
+            <h3>Дерево каталога</h3>
+            <div class="search-box">
+                <input type="text" id="treeSearch" placeholder="Поиск элементов...">
+            </div>
+            <div class="tree-container" id="catalogTree"></div>
+        </div>
+
+        <div class="main-content">
+            <div id="statusMessage" class="status-message hidden"></div>
+
+            <div class="tabs">
+                <div class="tab active" data-tab="edit">Редактировать элемент</div>
+                <div class="tab" data-tab="add">Добавить элемент</div>
+            </div>
+
+            <!-- Вкладка редактирования -->
+            <div class="tab-content active" id="editTab">
+                <h3>Редактирование элемента</h3>
+                <p style="color: #666; margin-bottom: 15px;">Выберите элемент в дереве каталога для редактирования</p>
+                
+                <form id="editForm" class="hidden">
+                    <input type="hidden" id="editPath" name="path">
+                    
+                    <div class="form-group">
+                        <label for="editName">Название</label>
+                        <input type="text" id="editName" name="name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editIcon">Иконка</label>
+                        <select id="editIcon" name="icon">
+                            <option value="">-- Выберите иконку --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Предпросмотр иконок</label>
+                        <div class="images-grid" id="editImagesGrid"></div>
+                    </div>
+
+                    <div class="form-group checkbox-group">
+                        <input type="checkbox" id="editPermanent" name="permanent">
+                        <label for="editPermanent">Сделать постоянным элементом</label>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editUrl">URL (для файлов)</label>
+                        <input type="text" id="editUrl" name="url" placeholder="https://...">
+                    </div>
+
+                    <button type="submit" class="btn btn-success">Сохранить изменения</button>
+                    <button type="button" class="btn btn-danger" onclick="deleteCurrentItem()">Удалить элемент</button>
+                </form>
+            </div>
+
+            <!-- Вкладка добавления -->
+            <div class="tab-content" id="addTab">
+                <h3>Добавление нового элемента</h3>
+                
+                <form id="addForm">
+                    <div class="form-group">
+                        <label for="addParentPath">Родительская папка</label>
+                        <input type="text" id="addParentPath" name="parent_path" readonly placeholder="Выберите папку в списке или через поиск">
+                    </div>
+                    <div class="form-group">
+                        <label>Поиск папки</label>
+                        <div class="search-box">
+                            <input type="text" id="parentSearch" placeholder="Поиск родительской папки...">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Список родителей</label>
+                        <div class="parent-list" id="parentList"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="addName">Название</label>
+                        <input type="text" id="addName" name="name" required placeholder="Введите название">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="addIcon">Иконка</label>
+                        <select id="addIcon" name="icon">
+                            <option value="">-- Выберите иконку --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Все доступные иконки</label>
+                        <div class="images-grid" id="addImagesGrid"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Поиск иконок</label>
+                        <div class="search-box">
+                            <input type="text" id="imageSearch" placeholder="Поиск картинок...">
+                        </div>
+                    </div>
+
+                    <div class="form-group checkbox-group">
+                        <input type="checkbox" id="addPermanent" name="permanent" checked>
+                        <label for="addPermanent">Сделать постоянным элементом</label>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="addUrl">URL (опционально, для файлов)</label>
+                        <input type="text" id="addUrl" name="url" placeholder="https://...">
+                    </div>
+
+                    <button type="submit" class="btn btn-success">Добавить элемент</button>
+                </form>
+            </div>
+
+            <!-- Вкладка парсера -->
+            <div class="tab-content" id="parserTab">
+                <h3>Управление парсером</h3>
+                
+                <div id="parserStatus" class="parser-status">
+                    <p><strong>Статус:</strong> <span id="parserStatusText">Загрузка...</span></p>
+                    <p><strong>Последний запуск:</strong> <span id="parserLastRun">-</span></p>
+                </div>
+
+                <button class="btn btn-success" onclick="startParser()">Запустить парсер</button>
+                
+                <hr style="margin: 20px 0;">
+                
+                <h4>Импорт JSON</h4>
+                <div class="form-group" style="margin-top: 15px;">
+                    <label for="importJsonData">JSON данные</label>
+                    <textarea id="importJsonData" rows="10" placeholder='[{"name": "Пример", "icon": "folder.png", "children": []}]'></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="importParentPath">Родительская папка (опционально)</label>
+                    <input type="text" id="importParentPath" placeholder="Путь к папке или выберите из списка">
+                </div>
+                
+                <div class="form-group">
+                    <label>Поиск папки для импорта</label>
+                    <div class="search-box">
+                        <input type="text" id="importParentSearch" placeholder="Поиск родительской папки...">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Список родителей для импорта</label>
+                    <div class="parent-list" id="importParentList"></div>
+                </div>
+                
+                <button class="btn btn-success" onclick="importJsonData()">Импортировать JSON</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Глобальные переменные
+        let catalogData = null;
+        let permanentItems = [];
+        let availableImages = [];
+        let selectedElement = null;
+        let selectedImage = null;
+        let filteredImages = [];
+
+        // Инициализация при загрузке
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadCatalog();
+            await loadPermanentItems();
+            await loadImages();
+            await loadParserStatus();
+            setupTabs();
+            setupForms();
+            setupSearch();
+            renderParentList();
+            renderImportParentList();
+            
+            // Слушаем события обновления из других вкладок
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'catalogUpdated') {
+                    // Обновить данные при изменении в другой вкладке
+                    loadCatalog();
+                    loadImages();
+                    loadPermanentItems();
+                    showStatus('Данные обновлены после завершения парсинга', 'success');
+                }
+            });
+        });
+
+        // Загрузка каталога
+        async function loadCatalog() {
+            try {
+                const response = await fetch('/api/catalog');
+                catalogData = await response.json();
+                renderCatalogTree();
+                renderParentList();
+                renderImportParentList();
+            } catch (error) {
+                showStatus('Ошибка загрузки каталога: ' + error.message, 'error');
+            }
+        }
+
+        // Загрузка постоянных элементов
+        async function loadPermanentItems() {
+            try {
+                const response = await fetch('/api/permanent');
+                const data = await response.json();
+                permanentItems = data.permanent_items || [];
+            } catch (error) {
+                console.error('Ошибка загрузки постоянных элементов:', error);
+            }
+        }
+
+        // Загрузка доступных изображений
+        async function loadImages() {
+            try {
+                const response = await fetch('/api/images');
+                availableImages = await response.json();
+                filteredImages = [...availableImages];
+                populateImageSelects();
+                renderImagesGrids();
+            } catch (error) {
+                console.error('Ошибка загрузки изображений:', error);
+            }
+        }
+
+        // Рендеринг дерева каталога с возможностью сворачивания/разворачивания
+        function renderCatalogTree(items = catalogData.children, parentPath = '', container = null, isRoot = true) {
+            if (!container) {
+                container = document.getElementById('catalogTree');
+                container.innerHTML = '';
+            }
+
+            items.forEach(item => {
+                const currentPath = parentPath ? `${parentPath}/${item.name}` : item.name;
+                const isPermanent = permanentItems.includes(currentPath);
+                const hasChildren = item.children && item.children.length > 0;
+
+                const treeItem = document.createElement('div');
+                treeItem.className = `tree-item${isPermanent ? ' permanent' : ''}`;
+                treeItem.dataset.path = currentPath;
+                
+                const toggleIcon = hasChildren ? '<span class="tree-toggle expanded"></span>' : '<span class="tree-toggle" style="visibility:hidden"></span>';
+                
+                // Определяем иконку для элемента
+                let itemIcon = '📁';
+                if (!hasChildren) {
+                    if (item.icon) {
+                        // Проверяем, является ли иконка URL-заглушкой
+                        const placeholderUrls = [
+                            'https://vm-ftp.anosov.ru/icons/folder.gif',
+                            'http://vm-ftp.anosov.ru/icons/folder.gif',
+                            'vm-ftp.anosov.ru/icons/folder.gif'
+                        ];
+                        
+                        let isPlaceholder = false;
+                        for (const placeholderUrl of placeholderUrls) {
+                            if (item.icon.includes(placeholderUrl)) {
+                                isPlaceholder = true;
+                                break;
+                            }
+                        }
+                        
+                        // Если иконка не пустая и не заглушка - используем 📄
+                        if (!isPlaceholder && item.icon.trim() !== '') {
+                            itemIcon = '📄';
+                        } else {
+                            itemIcon = '📁';
+                        }
+                    } else {
+                        itemIcon = '📁';
+                    }
+                }
+                
+                treeItem.innerHTML = `
+                    ${toggleIcon}
+                    <span>${itemIcon}</span>
+                    <span>${item.name.toUpperCase()}</span>
+                `;
+
+                // Обработчик клика для выбора элемента
+                treeItem.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('tree-toggle')) {
+                        toggleTreeChildren(treeItem, currentPath);
+                    } else {
+                        selectTreeItem(treeItem, currentPath, item);
+                    }
+                });
+
+                container.appendChild(treeItem);
+
+                if (hasChildren) {
+                    const childrenContainer = document.createElement('div');
+                    childrenContainer.className = 'tree-children';
+                    childrenContainer.dataset.parentPath = currentPath;
+                    renderCatalogTree(item.children, currentPath, childrenContainer, false);
+                    container.appendChild(childrenContainer);
+                }
+            });
+        }
+
+        // Сворачивание/разворачивание детей
+        function toggleTreeChildren(treeItem, path) {
+            const toggle = treeItem.querySelector('.tree-toggle');
+            const childrenContainer = document.querySelector(`.tree-children[data-parent-path="${path}"]`);
+            
+            if (childrenContainer) {
+                const isHidden = childrenContainer.classList.contains('hidden');
+                if (isHidden) {
+                    childrenContainer.classList.remove('hidden');
+                    toggle.classList.remove('collapsed');
+                    toggle.classList.add('expanded');
+                } else {
+                    childrenContainer.classList.add('hidden');
+                    toggle.classList.remove('expanded');
+                    toggle.classList.add('collapsed');
+                }
+            }
+        }
+
+        // Поиск по дереву
+        function searchInTree(query) {
+            const treeItems = document.querySelectorAll('.tree-item');
+            query = query.toLowerCase().trim();
+            
+            treeItems.forEach(item => {
+                const nameSpan = item.querySelector('span:last-child');
+                const displayName = nameSpan ? nameSpan.textContent.toLowerCase() : '';
+                if (query === '' || displayName.includes(query)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        // Выбор элемента в дереве
+        function selectTreeItem(element, path, itemData) {
+            // Снять выделение со всех элементов
+            document.querySelectorAll('.tree-item').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+
+            selectedElement = { path, ...itemData };
+
+            // Заполнить форму редактирования
+            document.getElementById('editForm').classList.remove('hidden');
+            document.getElementById('editPath').value = path;
+            document.getElementById('editName').value = itemData.name.toUpperCase();
+            document.getElementById('editIcon').value = itemData.icon || '';
+            document.getElementById('editUrl').value = itemData.url || '';
+            document.getElementById('editPermanent').checked = permanentItems.includes(path);
+
+            // Выделить текущую иконку в сетке
+            highlightSelectedImage(itemData.icon, 'editImagesGrid');
+            
+            // Обновить отображение иконки в дереве (если это файл с изображением)
+            const treeItem = document.querySelector(`.tree-item[data-path="${path}"]`);
+            if (treeItem && itemData.icon) {
+                const iconSpan = treeItem.querySelector('span:nth-child(2)');
+                if (iconSpan) {
+                    // Проверяем, является ли иконка URL-заглушкой
+                    const placeholderUrls = [
+                        'https://vm-ftp.anosov.ru/icons/folder.gif',
+                        'http://vm-ftp.anosov.ru/icons/folder.gif',
+                        'vm-ftp.anosov.ru/icons/folder.gif'
+                    ];
+                    
+                    let isPlaceholder = false;
+                    for (const placeholderUrl of placeholderUrls) {
+                        if (itemData.icon.includes(placeholderUrl)) {
+                            isPlaceholder = true;
+                            break;
+                        }
+                    }
+                    
+                    // Если иконка не пустая и не заглушка - используем 📄, иначе 📁
+                    if (!isPlaceholder && itemData.icon.trim() !== '') {
+                        iconSpan.textContent = '📄';
+                    } else {
+                        iconSpan.textContent = '📁';
+                    }
+                }
+            }
+        }
+
+        // Populate image selects
+        function populateImageSelects() {
+            const editSelect = document.getElementById('editIcon');
+            const addSelect = document.getElementById('addIcon');
+
+            [editSelect, addSelect].forEach(select => {
+                select.innerHTML = '<option value="">-- Выберите иконку --</option>';
+                availableImages.forEach(img => {
+                    const option = document.createElement('option');
+                    option.value = img.path;
+                    option.textContent = img.name;
+                    select.appendChild(option);
+                });
+            });
+        }
+
+        // Render images grids
+        function renderImagesGrids() {
+            renderImagesGrid('editImagesGrid', 'editIcon');
+            renderImagesGrid('addImagesGrid', 'addIcon');
+        }
+
+        function renderImagesGrid(containerId, selectId, images = availableImages) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = '';
+
+            images.forEach(img => {
+                const imageItem = document.createElement('div');
+                imageItem.className = 'image-item';
+                imageItem.dataset.path = img.path;
+                
+                // Определяем src для изображения
+                let imgSrc = img.path;
+                
+                // Если это внешний URL с vm-ftp.anosov.ru, используем прокси
+                if (img.path.startsWith('http://') || img.path.startsWith('https://')) {
+                    if (img.path.includes('vm-ftp.anosov.ru')) {
+                        imgSrc = '/api/proxy-image?url=' + encodeURIComponent(img.path);
+                    }
+                }
+                
+                imageItem.innerHTML = `
+                    <img src="${imgSrc}" alt="${img.name}" loading="lazy" onerror="this.style.display='none'">
+                    <span>${img.name}</span>
+                `;
+
+                imageItem.addEventListener('click', () => {
+                    // Снять выделение со всех
+                    container.querySelectorAll('.image-item').forEach(el => el.classList.remove('selected'));
+                    imageItem.classList.add('selected');
+
+                    // Выбрать в селекте
+                    const select = document.getElementById(selectId);
+                    select.value = img.path;
+                    selectedImage = img.path;
+                    
+                    // Обновить предпросмотр иконки у выбранного элемента в дереве
+                    if (selectId === 'editIcon' && selectedElement) {
+                        const treeItem = document.querySelector(`.tree-item[data-path="${selectedElement.path}"]`);
+                        if (treeItem) {
+                            const iconSpan = treeItem.querySelector('span:nth-child(2)');
+                            if (iconSpan) {
+                                // Проверяем, является ли выбранная иконка URL-заглушкой
+                                const placeholderUrls = [
+                                    'https://vm-ftp.anosov.ru/icons/folder.gif',
+                                    'http://vm-ftp.anosov.ru/icons/folder.gif',
+                                    'vm-ftp.anosov.ru/icons/folder.gif'
+                                ];
+                                
+                                let isPlaceholder = false;
+                                for (const placeholderUrl of placeholderUrls) {
+                                    if (img.path.includes(placeholderUrl)) {
+                                        isPlaceholder = true;
+                                        break;
+                                    }
+                                }
+                                
+                                // Если иконка не пустая и не заглушка - используем 📄, иначе 📁
+                                if (!isPlaceholder && img.path.trim() !== '') {
+                                    iconSpan.textContent = '📄';
+                                } else {
+                                    iconSpan.textContent = '📁';
+                                }
+                            }
+                        }
+                    }
+                });
+
+                container.appendChild(imageItem);
+            });
+        }
+
+        function highlightSelectedImage(iconPath, gridId) {
+            const container = document.getElementById(gridId);
+            container.querySelectorAll('.image-item').forEach(el => {
+                el.classList.toggle('selected', el.dataset.path === iconPath);
+            });
+        }
+
+        // Setup tabs
+        function setupTabs() {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    tab.classList.add('active');
+                    document.getElementById(`${tab.dataset.tab}Tab`).classList.add('active');
+                });
+            });
+        }
+
+        // Setup forms
+        function setupForms() {
+            // Edit form
+            document.getElementById('editForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await updateItem();
+            });
+
+            // Add form
+            document.getElementById('addForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await addItem();
+            });
+        }
+
+        // Setup search handlers
+        function setupSearch() {
+            // Tree search
+            document.getElementById('treeSearch').addEventListener('input', (e) => {
+                searchInTree(e.target.value);
+            });
+
+            // Image search
+            document.getElementById('imageSearch').addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase().trim();
+                filteredImages = availableImages.filter(img => img.name.toLowerCase().includes(query));
+                renderImagesGrid('addImagesGrid', 'addIcon', filteredImages);
+            });
+
+            // Parent folder search
+            document.getElementById('parentSearch').addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase().trim();
+                filterParentList(query);
+            });
+        }
+
+        // Фильтрация списка родителей по поиску
+        function filterParentList(query) {
+            const parentItems = document.querySelectorAll('#parentList .parent-item');
+            parentItems.forEach(item => {
+                const pathSpan = item.querySelector('span:last-child');
+                const pathText = pathSpan ? pathSpan.textContent.toLowerCase() : '';
+                if (query === '' || pathText.includes(query)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        // Render parent list for adding new items
+        function renderParentList() {
+            const container = document.getElementById('parentList');
+            container.innerHTML = '';
+
+            // Add root as an option
+            const rootItem = document.createElement('div');
+            rootItem.className = 'parent-item';
+            rootItem.dataset.path = '';
+            rootItem.innerHTML = `
+                <span>📁</span>
+                <span>Корневая папка</span>
+            `;
+            rootItem.addEventListener('click', () => selectParent(rootItem, ''));
+            container.appendChild(rootItem);
+
+            // Add all folders from catalog
+            if (catalogData && catalogData.children) {
+                renderParentListRecursive(catalogData.children, '', container);
+            }
+        }
+
+        function renderParentListRecursive(items, parentPath, container) {
+            items.forEach(item => {
+                const currentPath = parentPath ? `${parentPath}/${item.name}` : item.name;
+                
+                if (item.children !== null) {  // Это папка
+                    const parentItem = document.createElement('div');
+                    parentItem.className = 'parent-item';
+                    parentItem.dataset.path = currentPath;
+                    parentItem.innerHTML = `
+                        <span>📁</span>
+                        <span>${currentPath}</span>
+                    `;
+                    parentItem.addEventListener('click', () => selectParent(parentItem, currentPath));
+                    container.appendChild(parentItem);
+
+                    if (item.children && item.children.length > 0) {
+                        renderParentListRecursive(item.children, currentPath, container);
+                    }
+                }
+            });
+        }
+
+        function selectParent(element, path) {
+            document.querySelectorAll('.parent-item').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            document.getElementById('addParentPath').value = path;
+        }
+
+        // Update item
+        async function updateItem() {
+            const path = document.getElementById('editPath').value;
+            let iconValue = document.getElementById('editIcon').value;
+            
+            // Проверяем, является ли иконка URL-заглушкой, и если да - заменяем на пустую строку
+            const placeholderUrls = [
+                'https://vm-ftp.anosov.ru/icons/folder.gif',
+                'http://vm-ftp.anosov.ru/icons/folder.gif',
+                'vm-ftp.anosov.ru/icons/folder.gif'
+            ];
+            
+            let isPlaceholder = false;
+            for (const placeholderUrl of placeholderUrls) {
+                if (iconValue && iconValue.includes(placeholderUrl)) {
+                    isPlaceholder = true;
+                    break;
+                }
+            }
+            
+            if (isPlaceholder) {
+                iconValue = '';
+            }
+            
+            const updates = {
+                name: document.getElementById('editName').value.toUpperCase(),
+                icon: iconValue
+            };
+
+            const url = document.getElementById('editUrl').value;
+            if (url) updates.url = url;
+
+            try {
+                const response = await fetch('/api/items', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path, updates })
+                });
+
+                if (response.ok) {
+                    // Обновить постоянный статус
+                    const isPermanent = document.getElementById('editPermanent').checked;
+                    await togglePermanent(path, isPermanent);
+
+                    showStatus('Элемент успешно обновлён', 'success');
+                    await loadCatalog();
+                    await loadPermanentItems();
+                    
+                    // Отправить событие обновления для других вкладок
+                    localStorage.setItem('catalogUpdated', Date.now());
+                } else {
+                    const errorData = await response.json();
+                    showStatus('Ошибка обновления элемента: ' + (errorData.error || 'Неизвестная ошибка'), 'error');
+                }
+            } catch (error) {
+                showStatus('Ошибка: ' + error.message, 'error');
+            }
+        }
+
+        // Add item
+        async function addItem() {
+            const parentPath = document.getElementById('addParentPath').value;
+            const name = document.getElementById('addName').value.toUpperCase();
+            let iconValue = document.getElementById('addIcon').value || 'folder.png';
+            
+            // Проверяем, является ли иконка URL-заглушкой, и если да - заменяем на пустую строку
+            const placeholderUrls = [
+                'https://vm-ftp.anosov.ru/icons/folder.gif',
+                'http://vm-ftp.anosov.ru/icons/folder.gif',
+                'vm-ftp.anosov.ru/icons/folder.gif'
+            ];
+            
+            let isPlaceholder = false;
+            for (const placeholderUrl of placeholderUrls) {
+                if (iconValue && iconValue.includes(placeholderUrl)) {
+                    isPlaceholder = true;
+                    break;
+                }
+            }
+            
+            if (isPlaceholder) {
+                iconValue = '';
+            }
+            
+            const isPermanent = document.getElementById('addPermanent').checked;
+            const url = document.getElementById('addUrl').value;
+
+            try {
+                const requestBody = { parent_path: parentPath, name, icon: iconValue };
+                if (url) requestBody.url = url;
+
+                const response = await fetch('/api/items', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (response.ok) {
+                    // Сделать постоянным если нужно
+                    if (isPermanent) {
+                        const newPath = parentPath ? `${parentPath}/${name}` : name;
+                        await togglePermanent(newPath, true);
+                    }
+
+                    showStatus('Элемент успешно добавлен', 'success');
+                    document.getElementById('addForm').reset();
+                    document.getElementById('addParentPath').value = '';
+                    await loadCatalog();
+                    await loadPermanentItems();
+                    
+                    // Отправить событие обновления для других вкладок
+                    localStorage.setItem('catalogUpdated', Date.now());
+                } else {
+                    const errorData = await response.json();
+                    showStatus('Ошибка добавления элемента: ' + (errorData.error || 'Неизвестная ошибка'), 'error');
+                }
+            } catch (error) {
+                showStatus('Ошибка: ' + error.message, 'error');
+            }
+        }
+
+        // Delete item
+        async function deleteCurrentItem() {
+            if (!selectedElement) return;
+
+            if (!confirm(`Вы уверены, что хотите удалить "${selectedElement.name}"?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/items', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path: selectedElement.path })
+                });
+
+                if (response.ok) {
+                    // Удалить из постоянных если был там
+                    await togglePermanent(selectedElement.path, false);
+
+                    showStatus('Элемент успешно удалён', 'success');
+                    document.getElementById('editForm').classList.add('hidden');
+                    selectedElement = null;
+                    await loadCatalog();
+                    await loadPermanentItems();
+                } else {
+                    const errorData = await response.json();
+                    showStatus('Ошибка удаления элемента: ' + (errorData.error || 'Неизвестная ошибка'), 'error');
+                }
+            } catch (error) {
+                showStatus('Ошибка: ' + error.message, 'error');
+            }
+        }
+
+        // Toggle permanent status
+        async function togglePermanent(path, makePermanent) {
+            try {
+                await fetch('/api/permanent', {
+                    method: makePermanent ? 'POST' : 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path })
+                });
+            } catch (error) {
+                console.error('Ошибка обновления постоянного статуса:', error);
+            }
+        }
+
+        // Получить все пути элементов в каталоге (рекурсивно)
+        function getAllPaths(items = null, parentPath = '') {
+            let paths = [];
+            // Если items не передан, используем catalogData
+            if (items === null) {
+                if (!catalogData || !catalogData.children) return paths;
+                items = catalogData.children;
+            }
+            if (!items) return paths;
+            
+            items.forEach(item => {
+                const currentPath = parentPath ? `${parentPath}/${item.name}` : item.name;
+                paths.push(currentPath);
+                
+                if (item.children && item.children.length > 0) {
+                    paths = paths.concat(getAllPaths(item.children, currentPath));
+                }
+            });
+            return paths;
+        }
+
+        // Сделать все элементы постоянными
+        async function makeAllItemsPermanent() {
+            try {
+                // Сначала загружаем актуальный каталог для получения всех путей
+                const catalogResponse = await fetch('/api/catalog');
+                const catalog = await catalogResponse.json();
+                
+                const allPaths = getAllPaths(catalog.children);
+                for (const path of allPaths) {
+                    if (!permanentItems.includes(path)) {
+                        await togglePermanent(path, true);
+                    }
+                }
+                // Обновить список постоянных элементов
+                await loadPermanentItems();
+            } catch (error) {
+                console.error('Ошибка при установке постоянных элементов:', error);
+            }
+        }
+
+        // Start parser
+        async function startParser() {
+            const parserBtns = document.querySelectorAll('button[onclick="startParser()"]');
+            
+            // Блокируем все кнопки парсера
+            parserBtns.forEach(btn => {
+                btn.disabled = true;
+                btn.textContent = 'Парсинг...';
+            });
+            
+            try {
+                const response = await fetch('/api/parser/start', { method: 'POST' });
+                const data = await response.json();
+
+                if (data.status === 'started') {
+                    showStatus('Парсер запущен. Пожалуйста, дождитесь завершения...', 'success');
+                    checkParserStatus();
+                } else {
+                    showStatus('Парсер уже запущен', 'error');
+                    parserBtns.forEach(btn => {
+                        btn.disabled = false;
+                        btn.textContent = 'Парсер';
+                    });
+                }
+            } catch (error) {
+                showStatus('Ошибка запуска парсера: ' + error.message, 'error');
+                parserBtns.forEach(btn => {
+                    btn.disabled = false;
+                    btn.textContent = 'Парсер';
+                });
+            }
+        }
+
+        // Import JSON data
+        async function importJsonData() {
+            const jsonData = document.getElementById('importJsonData').value;
+            const parentPath = document.getElementById('importParentPath').value;
+
+            if (!jsonData.trim()) {
+                showStatus('Введите JSON данные', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/import/json', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ json_data: jsonData, parent_path: parentPath })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showStatus(result.message || 'JSON успешно импортирован', 'success');
+                    document.getElementById('importJsonData').value = '';
+                    document.getElementById('importParentPath').value = '';
+                    await loadCatalog();
+                    await loadPermanentItems();
+                } else {
+                    showStatus('Ошибка импорта JSON: ' + (result.error || 'Неизвестная ошибка'), 'error');
+                }
+            } catch (error) {
+                showStatus('Ошибка: ' + error.message, 'error');
+            }
+        }
+
+        // Render parent list for import
+        function renderImportParentList() {
+            const container = document.getElementById('importParentList');
+            if (!container) return;
+            container.innerHTML = '';
+
+            // Add root as an option
+            const rootItem = document.createElement('div');
+            rootItem.className = 'parent-item';
+            rootItem.dataset.path = '';
+            rootItem.innerHTML = `
+                <span>📁</span>
+                <span>Корневая папка</span>
+            `;
+            rootItem.addEventListener('click', () => selectImportParent(rootItem, ''));
+            container.appendChild(rootItem);
+
+            // Add all folders from catalog
+            if (catalogData && catalogData.children) {
+                renderParentListRecursive(catalogData.children, '', container);
+            }
+        }
+
+        function selectImportParent(element, path) {
+            document.querySelectorAll('#importParentList .parent-item').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            document.getElementById('importParentPath').value = path;
+        }
+
+        // Поиск папок для импорта JSON
+        document.addEventListener('DOMContentLoaded', () => {
+            const importParentSearchInput = document.getElementById('importParentSearch');
+            if (importParentSearchInput) {
+                importParentSearchInput.addEventListener('input', (e) => {
+                    const query = e.target.value.toLowerCase().trim();
+                    filterImportParentList(query);
+                });
+            }
+        });
+
+        // Фильтрация списка родителей для импорта
+        function filterImportParentList(query) {
+            const parentItems = document.querySelectorAll('#importParentList .parent-item');
+            parentItems.forEach(item => {
+                const pathSpan = item.querySelector('span:last-child');
+                const pathText = pathSpan ? pathSpan.textContent.toLowerCase() : '';
+                if (query === '' || pathText.includes(query)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        // Check parser status
+        async function checkParserStatus() {
+            try {
+                const response = await fetch('/api/parser/status');
+                const status = await response.json();
+
+                const statusDiv = document.getElementById('parserStatus');
+                const statusText = document.getElementById('parserStatusText');
+                const lastRun = document.getElementById('parserLastRun');
+
+                statusText.textContent = status.message;
+                lastRun.textContent = status.last_run || '-';
+
+                statusDiv.className = 'parser-status';
+                if (status.running) {
+                    statusDiv.classList.add('running');
+                    setTimeout(checkParserStatus, 2000);
+                } else {
+                    statusDiv.classList.add('completed');
+                    // Re-enable parser buttons
+                    document.querySelectorAll('button[onclick="startParser()"]').forEach(btn => {
+                        btn.disabled = false;
+                        btn.textContent = 'Парсер';
+                    });
+                    // Обновить изображения после завершения парсера
+                    await loadImages();
+                    
+                    // Сначала сделать все элементы постоянными ПЕРЕД обновлением каталога
+                    await makeAllItemsPermanent();
+                    
+                    // Обновить каталог (теперь он загрузится с учётом всех постоянных элементов)
+                    await loadCatalog();
+                    await loadPermanentItems();
+                    
+                    // Показать уведомление о завершении
+                    showStatus('Парсинг завершён успешно! Все элементы сделаны постоянными.', 'success');
+                    
+                    // Отправить событие обновления для других вкладок
+                    localStorage.setItem('catalogUpdated', Date.now());
+                }
+            } catch (error) {
+                console.error('Ошибка получения статуса парсера:', error);
+                // Re-enable parser buttons on error
+                document.querySelectorAll('button[onclick="startParser()"]').forEach(btn => {
+                    btn.disabled = false;
+                    btn.textContent = 'Парсер';
+                });
+            }
+        }
+
+        // Load initial parser status on page load
+        async function loadParserStatus() {
+            try {
+                const response = await fetch('/api/parser/status');
+                const status = await response.json();
+                
+                const statusDiv = document.getElementById('parserStatus');
+                const statusText = document.getElementById('parserStatusText');
+                const lastRun = document.getElementById('parserLastRun');
+
+                statusText.textContent = status.message;
+                lastRun.textContent = status.last_run || '-';
+
+                statusDiv.className = 'parser-status';
+                if (status.running) {
+                    statusDiv.classList.add('running');
+                    setTimeout(checkParserStatus, 2000);
+                } else {
+                    statusDiv.classList.add('completed');
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки статуса парсера:', error);
+            }
+        }
+
+        // Show status message
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.textContent = message;
+            statusDiv.className = `status-message status-${type}`;
+            statusDiv.classList.remove('hidden');
+
+            setTimeout(() => {
+                statusDiv.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Logout
+        function logout() {
+            window.location.href = '/logout';
+        }
+
+        // Change password
+        function changePassword() {
+            window.location.href = '/change-password';
+        }
+
+        // Export JSON
+        function exportJson() {
+            fetch('/api/catalog')
+                .then(response => response.json())
+                .then(data => {
+                    const jsonStr = JSON.stringify(data, null, 2);
+                    const blob = new Blob([jsonStr], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'catalog_export_' + new Date().toISOString().slice(0, 10) + '.json';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    showStatus('JSON файл успешно выгружен', 'success');
+                })
+                .catch(error => {
+                    showStatus('Ошибка выгрузки JSON: ' + error.message, 'error');
+                });
+        }
+    </script>
+</body>
+</html>
