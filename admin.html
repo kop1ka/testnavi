@@ -1265,6 +1265,9 @@
                     
                     // Отправить событие обновления для других вкладок
                     localStorage.setItem('catalogUpdated', Date.now());
+                    
+                    // Показать браузерное уведомление по окончании работы
+                    showBrowserNotification('Парсер завершил работу', 'Парсинг завершён успешно! Все элементы сохранены.');
                 }
             } catch (error) {
                 console.error('Ошибка получения статуса парсера:', error);
@@ -1311,6 +1314,35 @@
             setTimeout(() => {
                 statusDiv.classList.add('hidden');
             }, 5000);
+        }
+
+        // Browser notification
+        function showBrowserNotification(title, body) {
+            // Запросить разрешение на уведомления, если ещё не получено
+            if (!('Notification' in window)) {
+                console.log('Браузер не поддерживает уведомления');
+                return;
+            }
+            
+            if (Notification.permission === 'granted') {
+                new Notification(title, {
+                    body: body,
+                    icon: '/page/logo.png',
+                    tag: 'parser-completed',
+                    requireInteraction: false
+                });
+            } else if (Notification.permission !== 'denied') {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        new Notification(title, {
+                            body: body,
+                            icon: '/page/logo.png',
+                            tag: 'parser-completed',
+                            requireInteraction: false
+                        });
+                    }
+                });
+            }
         }
 
         // Logout

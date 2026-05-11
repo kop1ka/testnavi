@@ -142,17 +142,22 @@ def run_parser_task():
     Выполняется в отдельном потоке для неблокирующей работы.
     Обновляет глобальную переменную parser_status для отображения прогресса.
     Сохраняет найденные изображения в файл для постоянного доступа.
+    НЕ сбрасывает уже сохранённые изображения - добавляет только новые.
     """
     global parser_status
     try:
         parser_status['running'] = True
         parser_status['message'] = 'Парсинг запущен...'
         
+        # Загрузить уже сохранённые изображения, чтобы не потерять их
+        existing_images_data = load_json_file(PARSER_IMAGES_FILE, {'images': []})
+        existing_images = set(existing_images_data.get('images', []))
+        
         # Запустить парсинг FTP-каталога
         items = parse_folder(FTP_BASE_URL, max_depth=PARSER_MAX_DEPTH, timeout=PARSER_TIMEOUT)
         
         # Собрать все найденные изображения из парсера
-        parser_images = []
+        new_parser_images = []
         def collect_images(items_list):
             for item in items_list:
                 # Проверяем, является ли элемент файлом изображения (у файлов children=None)
@@ -162,8 +167,8 @@ def run_parser_task():
                     if url and (url.lower().endswith('.png') or url.lower().endswith('.jpg') or 
                                 url.lower().endswith('.jpeg') or url.lower().endswith('.gif') or 
                                 url.lower().endswith('.webp')):
-                        if url not in parser_images:
-                            parser_images.append(url)
+                        if url not in new_parser_images:
+                            new_parser_images.append(url)
                 else:
                     # Это папка - рекурсивно обрабатываем детей
                     if item.get('children'):
@@ -171,11 +176,17 @@ def run_parser_task():
         
         collect_images(items)
         
-        # Сохранить найденные изображения в файл для постоянного доступа
-        save_json_file(PARSER_IMAGES_FILE, {'images': parser_images})
+        # Объединить с существующими изображениями (сохраняем старые + добавляем новые)
+        all_images = list(existing_images)
+        for img_url in new_parser_images:
+            if img_url not in existing_images:
+                all_images.append(img_url)
+        
+        # Сохранить все изображения в файл для постоянного доступа
+        save_json_file(PARSER_IMAGES_FILE, {'images': all_images})
         
         # Обновить статус парсера с новыми изображениями
-        parser_status['images'] = parser_images
+        parser_status['images'] = all_images
         
         # Загрузить постоянные элементы
         permanent_items = load_permanent_items(PERMANENT_FILE)
@@ -195,7 +206,7 @@ def run_parser_task():
         
         # Обновить статус парсера
         parser_status['last_run'] = get_full_timestamp()
-        parser_status['message'] = f'Парсинг завершён успешно. Найдено элементов: {len(items)}. Изображений: {len(parser_images)}'
+        parser_status['message'] = f'Парсинг завершён успешно. Найдено элементов: {len(items)}. Всего изображений: {len(all_images)}'
         
     except Exception as e:
         parser_status['message'] = f'Ошибка парсинга: {str(e)}'
