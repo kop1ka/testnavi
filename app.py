@@ -38,7 +38,10 @@ from config.settings import (
 PROJECTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'projects')
 
 # Импорт утилит для работы с данными, парсингом, аутентификацией и каталогом
-from utils.data_utils import ensure_data_dir, load_json_file, save_json_file, get_current_timestamp, get_full_timestamp
+from utils.data_utils import (
+    ensure_data_dir, load_json_file, save_json_file, get_current_timestamp, get_full_timestamp,
+    load_users, save_users, load_catalog, save_catalog, load_permanent_items, save_permanent_items
+)
 from utils.parser_utils import extract_items_from_html, parse_folder
 from utils.auth_utils import User, hash_password, verify_password, admin_required_decorator
 from utils.catalog_utils import (
@@ -81,36 +84,6 @@ login_manager.session_protection = SESSION_PROTECTION  # Уровень защи
 parser_status = {'running': False, 'last_run': None, 'message': 'Парсер не запущен', 'images': []}
 
 
-def load_users():
-    """
-    Загрузить данные пользователей из JSON файла
-    
-    Если файл не существует, создаёт пользователя admin с паролем admin123
-    
-    Returns:
-        dict: Данные пользователей из файла users.json
-    """
-    return load_json_file(USERS_FILE, default={
-        "users": [{
-            "id": 1,
-            "username": "admin",
-            "password_hash": hash_password("admin123"),
-            "is_admin": True,
-            "created_at": datetime.now().isoformat()
-        }]
-    })
-
-
-def save_users(data):
-    """
-    Сохранить данные пользователей в JSON файл
-    
-    Args:
-        data (dict): Данные пользователей для сохранения
-    """
-    save_json_file(USERS_FILE, data)
-
-
 @login_manager.user_loader
 def load_user(user_id):
     """
@@ -124,55 +97,11 @@ def load_user(user_id):
     Returns:
         User or None: Объект пользователя или None если не найден
     """
-    users_data = load_users()
+    users_data = load_users(USERS_FILE, hash_password)
     for user in users_data.get('users', []):
         if str(user['id']) == str(user_id):
             return User(user['id'], user['username'], user.get('is_admin', False))
     return None
-
-
-def load_catalog():
-    """
-    Загрузить основной каталог из JSON файла
-    
-    Returns:
-        dict: Данные каталога с корневой папкой по умолчанию если файл не существует
-    """
-    return load_json_file(CATALOG_FILE, default={
-        "name": "ВЕБ-РЕСУРСЫ МУЛЬТИМЕДИЙНОГО КОНТЕНТА ПО НАПРАВЛЕНИЯМ",
-        "icon": "folder.png",
-        "children": []
-    })
-
-
-def save_catalog(data):
-    """
-    Сохранить каталог в JSON файл
-    
-    Args:
-        data (dict): Данные каталога для сохранения
-    """
-    save_json_file(CATALOG_FILE, data)
-
-
-def load_permanent_items():
-    """
-    Загрузить список постоянных элементов из JSON файла
-    
-    Returns:
-        dict: Список путей постоянных элементов
-    """
-    return load_json_file(PERMANENT_FILE, default={"permanent_items": []})
-
-
-def save_permanent_items(data):
-    """
-    Сохранить список постоянных элементов в JSON файл
-    
-    Args:
-        data (dict): Данные постоянных элементов для сохранения
-    """
-    save_json_file(PERMANENT_FILE, data)
 
 
 def run_parser_task():
@@ -218,11 +147,11 @@ def run_parser_task():
         parser_status['images'] = parser_images
         
         # Загрузить постоянные элементы
-        permanent_items = load_permanent_items()
+        permanent_items = load_permanent_items(PERMANENT_FILE)
         permanent_paths = set(permanent_items.get('permanent_items', []))
         
         # Загрузить существующий каталог
-        existing_catalog = load_catalog()
+        existing_catalog = load_catalog(CATALOG_FILE)
         existing_children = existing_catalog.get('children', [])
         
         # Объединить новые данные с существующими, сохраняя постоянные элементы
@@ -231,7 +160,7 @@ def run_parser_task():
         # Сохранить обновлённый каталог
         existing_catalog['children'] = merged_children
         existing_catalog['modified'] = get_current_timestamp()
-        save_catalog(existing_catalog)
+        save_catalog(CATALOG_FILE, existing_catalog)
         
         # Обновить статус парсера
         parser_status['last_run'] = get_full_timestamp()
@@ -266,7 +195,7 @@ def login():
         if not username or not password:
             error = 'Введите имя пользователя и пароль'
         else:
-            users_data = load_users()
+            users_data = load_users(USERS_FILE, hash_password)
             user_found = None
             for user in users_data.get('users', []):
                 if user['username'] == username:
@@ -493,7 +422,7 @@ def change_password():
             return redirect(url_for('change_password'))
         
         # Проверяем текущий пароль
-        users_data = load_users()
+        users_data = load_users(USERS_FILE, hash_password)
         user_found = None
         user_index = None
         for idx, user in enumerate(users_data.get('users', [])):
@@ -508,7 +437,7 @@ def change_password():
         
         # Обновляем пароль
         users_data['users'][user_index]['password_hash'] = hash_password(new_password)
-        save_users(users_data)
+        save_users(USERS_FILE, users_data)
         
         flash('Пароль успешно изменён', 'success')
         return redirect(url_for('admin'))
@@ -722,8 +651,8 @@ def get_catalog():
     Returns:
         Response: JSON объект каталога
     """
-    catalog = load_catalog()
-    permanent_items = load_permanent_items()
+    catalog = load_catalog(CATALOG_FILE)
+    permanent_items = load_permanent_items(PERMANENT_FILE)
     permanent_paths = set(permanent_items.get('permanent_items', []))
     mark_permanent_recursive(catalog.get('children', []), permanent_paths)
     
@@ -810,7 +739,7 @@ def import_json():
         imported_items = json.loads(json_data)
         
         # Загрузка каталога
-        catalog = load_catalog()
+        catalog = load_catalog(CATALOG_FILE)
         
         # Определение целевого списка для добавления
         if not parent_path:
@@ -834,7 +763,7 @@ def import_json():
                 target.append(items)
         
         add_imported_items(imported_items, target_list)
-        save_catalog(catalog)
+        save_catalog(CATALOG_FILE, catalog)
         
         return jsonify({'status': 'success', 'message': f'Импортировано элементов: {len(target_list)}'})
     
@@ -860,20 +789,20 @@ def permanent_api():
     Returns:
         Response: JSON объект со статусом операции или списком элементов
     """
-    permanent_data = load_permanent_items()
+    permanent_data = load_permanent_items(PERMANENT_FILE)
     
     if request.method == 'POST':
         path = request.json.get('path')
         if path and path not in permanent_data['permanent_items']:
             permanent_data['permanent_items'].append(path)
-            save_permanent_items(permanent_data)
+            save_permanent_items(PERMANENT_FILE, permanent_data)
         return jsonify({'status': 'success'})
     
     elif request.method == 'DELETE':
         path = request.json.get('path')
         if path in permanent_data['permanent_items']:
             permanent_data['permanent_items'].remove(path)
-            save_permanent_items(permanent_data)
+            save_permanent_items(PERMANENT_FILE, permanent_data)
         return jsonify({'status': 'success'})
     
     return jsonify(permanent_data)
@@ -901,7 +830,7 @@ def items_api():
     Returns:
         Response: JSON объект со статусом операции
     """
-    catalog = load_catalog()
+    catalog = load_catalog(CATALOG_FILE)
     data = request.json
     path = data.get('path', '')
     
@@ -926,19 +855,19 @@ def items_api():
         if url:
             new_item['url'] = url
         target_list.append(new_item)
-        save_catalog(catalog)
+        save_catalog(CATALOG_FILE, catalog)
         return jsonify({'status': 'success'})
     
     elif request.method == 'DELETE':
         if delete_item_by_path(catalog['children'], path):
-            save_catalog(catalog)
+            save_catalog(CATALOG_FILE, catalog)
             return jsonify({'status': 'success'})
         return jsonify({'error': 'Not found'}), 404
     
     elif request.method == 'PUT':
         updates = data.get('updates', {})
         if update_item_by_path(catalog['children'], path, updates):
-            save_catalog(catalog)
+            save_catalog(CATALOG_FILE, catalog)
             return jsonify({'status': 'success'})
         return jsonify({'error': 'Not found'}), 404
     
@@ -1093,7 +1022,7 @@ if __name__ == '__main__':
     ensure_data_dir(DATA_DIR)
     
     # Инициализировать файл пользователей если не существует
-    load_users()
+    load_users(USERS_FILE, hash_password)
     
     print("🚀 Запуск сервера...")
     app.run(debug=True, host='0.0.0.0', port=5000)
