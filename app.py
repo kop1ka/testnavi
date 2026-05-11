@@ -931,21 +931,21 @@ def get_images():
     """
     API endpoint для получения списка всех доступных изображений
     
-    Сканирует папку page/icons/ на наличие изображений и добавляет
+    Сканирует папку page/ на наличие изображений и добавляет
     изображения, найденные парсером (из файла parser_images.json).
     
     Returns:
         Response: JSON массив объектов с информацией об изображениях в UTF-8
     """
-    icons_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'page', 'icons')
+    page_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'page')
     images = []
     seen_paths = set()  # Для предотвращения дубликатов
     
-    # Сканировать папку icons
-    if os.path.exists(icons_dir):
-        for filename in os.listdir(icons_dir):
+    # Сканировать папку page
+    if os.path.exists(page_dir):
+        for filename in os.listdir(page_dir):
             if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp')):
-                path = f'page/icons/{filename}'
+                path = f'page/{filename}'
                 if path not in seen_paths:
                     images.append({'name': filename, 'path': path})
                     seen_paths.add(path)

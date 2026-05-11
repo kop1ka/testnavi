@@ -77,8 +77,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return iconName;
         }
         
-        // Иначе добавляем локальный путь
-        return `page/icons/${iconName}`;
+        // Иначе используем локальный путь из папки page/
+        return `page/${iconName}`;
     }
 
     // Функция поиска по всем элементам каталога (рекурсивно)
