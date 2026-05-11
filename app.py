@@ -930,17 +930,54 @@ def items_api():
         
         # Если в обновлениях есть icon, нужно также установить permanent=True
         if 'icon' in updates and updates['icon']:
-            # Находим элемент и устанавливаем permanent=True
-            item = find_item_by_path(catalog['children'], path)
-            if item:
-                updates['permanent'] = True
+            updates['permanent'] = True
         
+        # Попытаться обновить существующий элемент
         if update_item_by_path(catalog['children'], path, updates):
             save_catalog(CATALOG_FILE, catalog)
             response = jsonify({'status': 'success'})
             response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
             return response
-        return jsonify({'error': 'Not found'}), 404
+        
+        # Элемент не найден - создать его автоматически
+        # Разбить путь на части для определения родительской папки
+        path_parts = path.split('/')
+        if len(path_parts) > 1:
+            parent_path = '/'.join(path_parts[:-1])
+            item_name = path_parts[-1]
+        else:
+            parent_path = ''
+            item_name = path
+        
+        # Определить целевой список для добавления
+        if not parent_path:
+            target_list = catalog['children']
+        else:
+            parent_item = find_item_by_path(catalog['children'], parent_path)
+            if parent_item and 'children' in parent_item:
+                target_list = parent_item['children']
+            else:
+                # Родительская папка не найдена - создать её рекурсивно
+                # Для простоты создаём в корне
+                target_list = catalog['children']
+                parent_path = ''
+        
+        # Создать новый элемент с данными из updates
+        new_item = {
+            'name': updates.get('name', item_name.upper()),
+            'icon': updates.get('icon', 'folder.png'),
+            'children': []
+        }
+        if 'url' in updates:
+            new_item['url'] = updates['url']
+        if updates.get('permanent'):
+            new_item['permanent'] = True
+        
+        target_list.append(new_item)
+        save_catalog(CATALOG_FILE, catalog)
+        response = jsonify({'status': 'created'})
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        return response
     
     return jsonify({'error': 'Invalid method'}), 400
 
