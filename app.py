@@ -727,15 +727,7 @@ def get_catalog():
     permanent_paths = set(permanent_items.get('permanent_items', []))
     mark_permanent_recursive(catalog.get('children', []), permanent_paths)
     
-    # Добавляем проекты из папки projects как постоянные элементы
-    projects_entry = {
-        "name": "projects",
-        "icon": "folder.png",
-        "children": [],
-        "url": None,
-        "permanent": True
-    }
-    
+    # Добавляем проекты из папки projects напрямую в каталог (без создания папки projects)
     if os.path.exists(PROJECTS_DIR):
         for project_name in os.listdir(PROJECTS_DIR):
             project_path = os.path.join(PROJECTS_DIR, project_name)
@@ -750,11 +742,7 @@ def get_catalog():
                         "modified": datetime.fromtimestamp(os.path.getmtime(index_html_path)).strftime('%Y-%m-%d %H:%M'),
                         "permanent": True
                     }
-                    projects_entry["children"].append(project_item)
-    
-    # Добавляем entry projects в каталог если есть проекты
-    if projects_entry["children"]:
-        catalog["children"].insert(0, projects_entry)
+                    catalog["children"].insert(0, project_item)
     
     return jsonify(catalog)
 
