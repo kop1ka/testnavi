@@ -18,8 +18,9 @@ import os
 import json
 import re
 import threading
+import requests
 from datetime import datetime, timedelta
-from urllib.parse import unquote
+from urllib.parse import unquote, urlparse
 from flask import Flask, render_template_string, request, jsonify, send_from_directory, redirect, url_for, session, flash, Response
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_wtf import CSRFProtect
@@ -30,7 +31,7 @@ from flask_limiter.util import get_remote_address
 from config.settings import (
     DATA_DIR, CATALOG_FILE, PERMANENT_FILE, USERS_FILE, PARSER_IMAGES_FILE, SECRET_KEY,
     FTP_BASE_URL, PARSER_MAX_DEPTH, PARSER_TIMEOUT,
-    RATELIMIT_STORAGE_URI, RATELIMIT_DEFAULT, RATELIMIT_LOGIN,
+    RATELIMIT_STORAGE_URI, RATELIMIT_DEFAULT, RATELIMIT_LOGIN, RATELIMIT_ENABLED,
     LOGIN_VIEW, LOGIN_MESSAGE, SESSION_PROTECTION
 )
 
@@ -92,7 +93,6 @@ csrf = CSRFProtect(app)  # Защита от CSRF атак
 # Отключаем rate limiting для статических файлов (изображения, CSS, JS) и API прокси
 def limiter_enabled():
     """Проверка, включен ли rate limiting для текущего запроса"""
-    from flask import request
     # Не применяем rate limiting к статическим файлам и proxy-image endpoint
     if request.path.startswith('/page/') or request.path.startswith('/static/') or request.path.startswith('/projects/') or request.path.startswith('/css/') or request.path.startswith('/js/') or request.path == '/api/proxy-image':
         return False
@@ -1087,9 +1087,6 @@ def proxy_image():
     Returns:
         Response: Изображение с appropriate Content-Type
     """
-    import requests
-    from urllib.parse import urlparse, unquote
-    
     image_url = request.args.get('url', '')
     
     if not image_url:

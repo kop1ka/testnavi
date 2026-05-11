@@ -2,6 +2,9 @@
 import bcrypt
 from datetime import datetime
 from flask_login import UserMixin
+from functools import wraps
+from flask import flash, redirect, url_for
+from flask_login import current_user
 
 
 class User(UserMixin):
@@ -36,10 +39,6 @@ def create_user(username, password, is_admin=False):
 
 
 def admin_required_decorator(f):
-    from functools import wraps
-    from flask import flash, redirect, url_for
-    from flask_login import current_user
-    
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated or not getattr(current_user, 'is_admin', False):
