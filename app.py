@@ -55,6 +55,17 @@ from utils.catalog_utils import (
 app = Flask(__name__, static_folder='.', static_url_path='')
 app.secret_key = SECRET_KEY  # Использование секретного ключа из конфига для сессий
 
+# Настройка CORS заголовков для всех ответов (необходимо для работы на render.com и других хостингах)
+@app.after_request
+def add_cors_headers(response):
+    """Добавляет CORS заголовки для поддержки跨源 запросов"""
+    # Разрешаем запросы с любых источников (можно ограничить при необходимости)
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-CSRFToken'
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+    return response
+
 # Инициализация расширений Flask
 csrf = CSRFProtect(app)  # Защита от CSRF атак
 
@@ -623,7 +634,12 @@ def index():
     Returns:
         Response: HTML файл index.html
     """
-    return send_from_directory('.', 'index.html')
+    response = send_from_directory('.', 'index.html')
+    # Добавляем заголовки для предотвращения кэширования HTML страниц
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 
 @app.route('/admin')
@@ -638,7 +654,12 @@ def admin():
     Returns:
         Response: HTML файл admin.html
     """
-    return send_from_directory('.', 'admin.html')
+    response = send_from_directory('.', 'admin.html')
+    # Добавляем заголовки для предотвращения кэширования HTML страниц
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 
 @app.route('/api/catalog')
@@ -673,7 +694,12 @@ def get_catalog():
                     }
                     catalog["children"].insert(0, project_item)
     
-    return jsonify(catalog)
+    response = jsonify(catalog)
+    # Добавляем заголовки для предотвращения кэширования API ответов
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 
 @app.route('/api/parser/status')
@@ -856,19 +882,25 @@ def items_api():
             new_item['url'] = url
         target_list.append(new_item)
         save_catalog(CATALOG_FILE, catalog)
-        return jsonify({'status': 'success'})
+        response = jsonify({'status': 'success'})
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        return response
     
     elif request.method == 'DELETE':
         if delete_item_by_path(catalog['children'], path):
             save_catalog(CATALOG_FILE, catalog)
-            return jsonify({'status': 'success'})
+            response = jsonify({'status': 'success'})
+            response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+            return response
         return jsonify({'error': 'Not found'}), 404
     
     elif request.method == 'PUT':
         updates = data.get('updates', {})
         if update_item_by_path(catalog['children'], path, updates):
             save_catalog(CATALOG_FILE, catalog)
-            return jsonify({'status': 'success'})
+            response = jsonify({'status': 'success'})
+            response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+            return response
         return jsonify({'error': 'Not found'}), 404
     
     return jsonify({'error': 'Invalid method'}), 400
@@ -932,6 +964,10 @@ def get_images():
         json.dumps(images, ensure_ascii=False),
         mimetype='application/json; charset=utf-8'
     )
+    # Добавляем заголовки для предотвращения кэширования API ответов
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
     return response
 
 
