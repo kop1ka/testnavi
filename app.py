@@ -64,6 +64,26 @@ def add_cors_headers(response):
     response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-CSRFToken'
     response.headers['Access-Control-Allow-Credentials'] = 'true'
+    
+    # Добавляем правильные MIME-типы для статических файлов
+    if response.headers.get('Content-Type', '').startswith('text/plain') or not response.headers.get('Content-Type'):
+        if request.path.endswith('.css'):
+            response.headers['Content-Type'] = 'text/css; charset=utf-8'
+        elif request.path.endswith('.js'):
+            response.headers['Content-Type'] = 'application/javascript; charset=utf-8'
+        elif request.path.endswith('.png'):
+            response.headers['Content-Type'] = 'image/png'
+        elif request.path.endswith('.jpg') or request.path.endswith('.jpeg'):
+            response.headers['Content-Type'] = 'image/jpeg'
+        elif request.path.endswith('.gif'):
+            response.headers['Content-Type'] = 'image/gif'
+        elif request.path.endswith('.webp'):
+            response.headers['Content-Type'] = 'image/webp'
+        elif request.path.endswith('.svg'):
+            response.headers['Content-Type'] = 'image/svg+xml'
+        elif request.path.endswith('.html'):
+            response.headers['Content-Type'] = 'text/html; charset=utf-8'
+    
     return response
 
 # Инициализация расширений Flask
@@ -74,7 +94,7 @@ def limiter_enabled():
     """Проверка, включен ли rate limiting для текущего запроса"""
     from flask import request
     # Не применяем rate limiting к статическим файлам
-    if request.path.startswith('/page/') or request.path.startswith('/static/') or request.path.startswith('/projects/'):
+    if request.path.startswith('/page/') or request.path.startswith('/static/') or request.path.startswith('/projects/') or request.path.startswith('/css/') or request.path.startswith('/js/'):
         return False
     return RATELIMIT_ENABLED
 
@@ -984,6 +1004,40 @@ def serve_page_image(filename):
     """
     page_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'page')
     return send_from_directory(page_dir, filename, max_age=86400)  # Кэширование на 24 часа
+
+
+@app.route('/css/<path:filename>')
+def serve_css(filename):
+    """
+    API endpoint для раздачи CSS файлов из папки css/
+    
+    Args:
+        filename: Путь к файлу относительно папки css/
+    
+    Returns:
+        Response: CSS файл
+    """
+    css_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'css')
+    response = send_from_directory(css_dir, filename, max_age=86400)
+    response.headers['Content-Type'] = 'text/css; charset=utf-8'
+    return response
+
+
+@app.route('/js/<path:filename>')
+def serve_js(filename):
+    """
+    API endpoint для раздачи JS файлов из папки js/
+    
+    Args:
+        filename: Путь к файлу относительно папки js/
+    
+    Returns:
+        Response: JS файл
+    """
+    js_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'js')
+    response = send_from_directory(js_dir, filename, max_age=86400)
+    response.headers['Content-Type'] = 'application/javascript; charset=utf-8'
+    return response
 
 
 @app.route('/projects/<path:filename>')
