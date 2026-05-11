@@ -1,39 +1,16 @@
 ```
-# Python
+# Python cache
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 
-# Dependencies
-.venv/
-venv/
-.env
-.env.local
-.env.*
-
-# Logs and temporary files
+# Logs and temp files
 *.log
 *.tmp
 
-# Coverage
-.coverage
-coverage/
-htmlcov/
-
-# MyPy
-.mypy_cache/
-
-# PyTest
-.pytest_cache/
-
-# VS Code
-.vscode/
-
-# IntelliJ IDEA
-.idea/
-
-# System files
-.DS_Store
-Thumbs.db
+# Environment files
+.env
+.env.local
+*.env.*
 ```
