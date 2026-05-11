@@ -89,12 +89,12 @@ def add_cors_headers(response):
 # Инициализация расширений Flask
 csrf = CSRFProtect(app)  # Защита от CSRF атак
 
-# Отключаем rate limiting для статических файлов (изображения, CSS, JS)
+# Отключаем rate limiting для статических файлов (изображения, CSS, JS) и API прокси
 def limiter_enabled():
     """Проверка, включен ли rate limiting для текущего запроса"""
     from flask import request
-    # Не применяем rate limiting к статическим файлам
-    if request.path.startswith('/page/') or request.path.startswith('/static/') or request.path.startswith('/projects/') or request.path.startswith('/css/') or request.path.startswith('/js/'):
+    # Не применяем rate limiting к статическим файлам и proxy-image endpoint
+    if request.path.startswith('/page/') or request.path.startswith('/static/') or request.path.startswith('/projects/') or request.path.startswith('/css/') or request.path.startswith('/js/') or request.path == '/api/proxy-image':
         return False
     return RATELIMIT_ENABLED
 
@@ -1055,8 +1055,6 @@ def serve_project_file(filename):
 
 
 @app.route('/api/proxy-image')
-@login_required
-@admin_required_decorator
 def proxy_image():
     """
     API endpoint для проксирования изображений с внешних URL

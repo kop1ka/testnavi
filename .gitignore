@@ -5,33 +5,35 @@ __pycache__/
 *.pyo
 *.pyd
 
-# Build artifacts
-build/
-dist/
-
-# Environment
+# Dependencies
 .venv/
 venv/
 .env
 .env.local
-*.env.*
+.env.*
 
-# Logs
+# Logs and temporary files
 *.log
+*.tmp
 
 # Coverage
 .coverage
-htmlcov/
 coverage/
+htmlcov/
 
-# IDE
+# MyPy
+.mypy_cache/
+
+# PyTest
+.pytest_cache/
+
+# VS Code
 .vscode/
-.idea/
-*.swp
-*.swo
-*.tmp
 
-# OS
+# IntelliJ IDEA
+.idea/
+
+# System files
 .DS_Store
 Thumbs.db
 ```
