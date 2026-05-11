@@ -34,6 +34,9 @@ from config.settings import (
     LOGIN_VIEW, LOGIN_MESSAGE, SESSION_PROTECTION
 )
 
+# Директория для проектов
+PROJECTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'projects')
+
 # Импорт утилит для работы с данными, парсингом, аутентификацией и каталогом
 from utils.data_utils import ensure_data_dir, load_json_file, save_json_file, get_current_timestamp, get_full_timestamp
 from utils.parser_utils import extract_items_from_html, parse_folder
@@ -57,7 +60,7 @@ def limiter_enabled():
     """Проверка, включен ли rate limiting для текущего запроса"""
     from flask import request
     # Не применяем rate limiting к статическим файлам
-    if request.path.startswith('/page/') or request.path.startswith('/static/'):
+    if request.path.startswith('/page/') or request.path.startswith('/static/') or request.path.startswith('/projects/'):
         return False
     return RATELIMIT_ENABLED
 
@@ -723,6 +726,36 @@ def get_catalog():
     permanent_items = load_permanent_items()
     permanent_paths = set(permanent_items.get('permanent_items', []))
     mark_permanent_recursive(catalog.get('children', []), permanent_paths)
+    
+    # Добавляем проекты из папки projects как постоянные элементы
+    projects_entry = {
+        "name": "projects",
+        "icon": "folder.png",
+        "children": [],
+        "url": None,
+        "permanent": True
+    }
+    
+    if os.path.exists(PROJECTS_DIR):
+        for project_name in os.listdir(PROJECTS_DIR):
+            project_path = os.path.join(PROJECTS_DIR, project_name)
+            if os.path.isdir(project_path):
+                index_html_path = os.path.join(project_path, 'index.html')
+                if os.path.exists(index_html_path):
+                    project_item = {
+                        "name": project_name,
+                        "icon": "page/logo.png",
+                        "children": None,
+                        "url": f"/projects/{project_name}/index.html",
+                        "modified": datetime.fromtimestamp(os.path.getmtime(index_html_path)).strftime('%Y-%m-%d %H:%M'),
+                        "permanent": True
+                    }
+                    projects_entry["children"].append(project_item)
+    
+    # Добавляем entry projects в каталог если есть проекты
+    if projects_entry["children"]:
+        catalog["children"].insert(0, projects_entry)
+    
     return jsonify(catalog)
 
 
@@ -998,6 +1031,20 @@ def serve_page_image(filename):
     """
     page_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'page')
     return send_from_directory(page_dir, filename, max_age=86400)  # Кэширование на 24 часа
+
+
+@app.route('/projects/<path:filename>')
+def serve_project_file(filename):
+    """
+    API endpoint для раздачи файлов проектов из папки projects/
+    
+    Args:
+        filename: Путь к файлу относительно папки projects/
+    
+    Returns:
+        Response: Файл проекта (html, css, js, images, etc.)
+    """
+    return send_from_directory(PROJECTS_DIR, filename, max_age=86400)  # Кэширование на 24 часа
 
 
 @app.route('/api/proxy-image')
