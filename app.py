@@ -927,6 +927,14 @@ def items_api():
     
     elif request.method == 'PUT':
         updates = data.get('updates', {})
+        
+        # Если в обновлениях есть icon, нужно также установить permanent=True
+        if 'icon' in updates and updates['icon']:
+            # Находим элемент и устанавливаем permanent=True
+            item = find_item_by_path(catalog['children'], path)
+            if item:
+                updates['permanent'] = True
+        
         if update_item_by_path(catalog['children'], path, updates):
             save_catalog(CATALOG_FILE, catalog)
             response = jsonify({'status': 'success'})
