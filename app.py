@@ -18,9 +18,8 @@ import os
 import json
 import re
 import threading
-import requests
 from datetime import datetime, timedelta
-from urllib.parse import unquote, urlparse
+from urllib.parse import unquote
 from flask import Flask, render_template_string, request, jsonify, send_from_directory, redirect, url_for, session, flash, Response
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_wtf import CSRFProtect
@@ -90,12 +89,12 @@ def add_cors_headers(response):
 # Инициализация расширений Flask
 csrf = CSRFProtect(app)  # Защита от CSRF атак
 
-# Отключаем rate limiting для статических файлов (изображения, CSS, JS) и API прокси изображений
+# Отключаем rate limiting для статических файлов (изображения, CSS, JS)
 def limiter_enabled():
     """Проверка, включен ли rate limiting для текущего запроса"""
     from flask import request
-    # Не применяем rate limiting к статическим файлам и API прокси изображений
-    if request.path.startswith('/page/') or request.path.startswith('/static/') or request.path.startswith('/projects/') or request.path.startswith('/css/') or request.path.startswith('/js/') or request.path.startswith('/api/proxy-image'):
+    # Не применяем rate limiting к статическим файлам
+    if request.path.startswith('/page/') or request.path.startswith('/static/') or request.path.startswith('/projects/') or request.path.startswith('/css/') or request.path.startswith('/js/'):
         return False
     return RATELIMIT_ENABLED
 
@@ -1056,6 +1055,8 @@ def serve_project_file(filename):
 
 
 @app.route('/api/proxy-image')
+@login_required
+@admin_required_decorator
 def proxy_image():
     """
     API endpoint для проксирования изображений с внешних URL
@@ -1069,6 +1070,9 @@ def proxy_image():
     Returns:
         Response: Изображение с appropriate Content-Type
     """
+    import requests
+    from urllib.parse import urlparse, unquote
+    
     image_url = request.args.get('url', '')
     
     if not image_url:
@@ -1094,9 +1098,8 @@ def proxy_image():
             content_type=content_type
         )
         
-        # Добавляем заголовки для кэширования и CORS
+        # Добавляем заголовки для кэширования
         proxy_response.headers['Cache-Control'] = 'public, max-age=86400'
-        proxy_response.headers['Access-Control-Allow-Origin'] = '*'
         
         return proxy_response
         
