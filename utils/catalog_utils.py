@@ -23,7 +23,7 @@ def merge_with_permanent(new_data, existing_catalog, permanent_paths, parent_pat
     Если элемент является постоянным и существует в старом каталоге,
     он берётся из старого каталога целиком (сохраняются все свойства: icon, children и т.д.)
     
-    Для непостоянных элементов также сохраняются существующие свойства (icon и др.),
+    Для НЕпостоянных элементов также сохраняются существующие свойства (icon и др.),
     обновляются только базовые данные из парсера (children, modified, url).
     Свойство 'icon' никогда не перезаписывается данными из парсера - оно сохраняется из существующего каталога.
     """
@@ -72,9 +72,11 @@ def merge_with_permanent(new_data, existing_catalog, permanent_paths, parent_pat
                         )
                     else:
                         merged_item['children'] = None
-                if 'url' in new_item:
+                # НЕ обновляем url и modified из парсера для непостоянных элементов с установленным icon
+                # Сохраняем пользовательский icon навсегда
+                if 'url' in new_item and existing_item.get('icon') is None:
                     merged_item['url'] = new_item['url']
-                if 'modified' in new_item:
+                if 'modified' in new_item and existing_item.get('icon') is None:
                     merged_item['modified'] = new_item['modified']
                 
                 result.append(merged_item)
@@ -138,9 +140,10 @@ def _merge_children_keep_all(new_children, existing_children, permanent_paths, p
                         )
                     
                     # Обновляем url и modified из парсера, но не icon
-                    if 'url' in new_item:
+                    # НЕ обновляем url/modified если есть пользовательский icon
+                    if 'url' in new_item and result_item.get('icon') is None:
                         result[i]['url'] = new_item['url']
-                    if 'modified' in new_item:
+                    if 'modified' in new_item and result_item.get('icon') is None:
                         result[i]['modified'] = new_item['modified']
                     
                     # Восстанавливаем сохранённый icon и permanent статус

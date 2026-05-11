@@ -643,6 +643,9 @@
             element.classList.add('selected');
 
             selectedElement = { path, ...itemData };
+            
+            // Сохраняем текущую иконку в selectedImage при выборе элемента
+            selectedImage = itemData.icon || '';
 
             // Заполнить форму редактирования
             document.getElementById('editForm').classList.remove('hidden');
@@ -901,7 +904,9 @@
         // Update item
         async function updateItem() {
             const path = document.getElementById('editPath').value;
-            let iconValue = document.getElementById('editIcon').value;
+            
+            // Используем selectedImage если он выбран, иначе берём из селекта
+            let iconValue = selectedImage || document.getElementById('editIcon').value;
             
             // Проверяем, является ли иконка URL-заглушкой, и если да - заменяем на пустую строку
             const placeholderUrls = [
@@ -961,7 +966,9 @@
         async function addItem() {
             const parentPath = document.getElementById('addParentPath').value;
             const name = document.getElementById('addName').value.toUpperCase();
-            let iconValue = document.getElementById('addIcon').value || 'folder.png';
+            
+            // Используем selectedImage если он выбран, иначе берём из селекта
+            let iconValue = selectedImage || document.getElementById('addIcon').value || 'folder.png';
             
             // Проверяем, является ли иконка URL-заглушкой, и если да - заменяем на пустую строку
             const placeholderUrls = [
