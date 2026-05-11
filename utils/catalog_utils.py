@@ -28,14 +28,18 @@ def merge_with_permanent(new_data, existing_catalog, permanent_paths, parent_pat
     Свойство 'icon' никогда не перезаписывается данными из парсера - оно сохраняется из существующего каталога.
     """
     result = []
-    existing_by_name = {item['name']: item for item in existing_catalog}
+    # Создаём словарь для быстрого поиска по имени (нечувствительному к регистру)
+    existing_by_name_lower = {item['name'].lower(): item for item in existing_catalog}
     
     for new_item in new_data:
         current_path = get_item_path(new_item, parent_path)
+        new_item_name_lower = new_item['name'].lower()
+        
+        # Проверяем, существует ли элемент с таким же именем (нечувствительно к регистру)
+        existing_item = existing_by_name_lower.get(new_item_name_lower)
         
         # Если элемент постоянный и существует в старом каталоге - используем старую версию
-        if current_path in permanent_paths and new_item['name'] in existing_by_name:
-            existing_item = existing_by_name[new_item['name']]
+        if current_path in permanent_paths and existing_item:
             # Берём существующий элемент целиком (полное сохранение)
             merged_item = existing_item.copy()
             
@@ -55,8 +59,7 @@ def merge_with_permanent(new_data, existing_catalog, permanent_paths, parent_pat
         else:
             # Для непостоянных элементов
             # Если элемент уже существовал - сохраняем его свойства (icon и др.)
-            if new_item['name'] in existing_by_name:
-                existing_item = existing_by_name[new_item['name']]
+            if existing_item:
                 # Начинаем с копии существующего элемента (сохраняем icon и другие свойства)
                 merged_item = existing_item.copy()
                 
@@ -90,16 +93,18 @@ def merge_with_permanent(new_data, existing_catalog, permanent_paths, parent_pat
                 if 'children' in new_item and new_item['children'] is not None:
                     new_item['children'] = _merge_children_keep_all(
                         new_item['children'],
-                        existing_by_name.get(new_item['name'], {}).get('children', []),
+                        existing_by_name_lower.get(new_item_name_lower, {}).get('children', []),
                         permanent_paths,
                         current_path
                     )
                 result.append(new_item)
     
     # Добавляем постоянные элементы, которых нет в новых данных парсера
-    for name, existing_item in existing_by_name.items():
+    # Используем множество имён (в нижнем регистре) для проверки
+    result_names_lower = {item['name'].lower() for item in result}
+    for name, existing_item in existing_by_name_lower.items():
         current_path = get_item_path(existing_item, parent_path)
-        if current_path in permanent_paths and name not in [item['name'] for item in result]:
+        if current_path in permanent_paths and name not in result_names_lower:
             result.append(existing_item)
     
     return result
@@ -120,16 +125,19 @@ def _merge_children_keep_all(new_children, existing_children, permanent_paths, p
         copied_item = existing_item.copy()
         result.append(copied_item)
     
-    existing_names = {item['name'] for item in existing_children}
+    # Создаём словарь для быстрого поиска по имени (нечувствительному к регистру)
+    existing_names_lower = {item['name'].lower(): item for item in existing_children}
     
     for new_item in new_children:
         current_path = get_item_path(new_item, parent_path)
+        new_item_name_lower = new_item['name'].lower()
         
         # Если элемент уже существует - обновляем его рекурсивно
-        if new_item['name'] in existing_names:
+        if new_item_name_lower in existing_names_lower:
             # Находим существующий элемент в результате
+            existing_item = existing_names_lower[new_item_name_lower]
             for i, result_item in enumerate(result):
-                if result_item['name'] == new_item['name']:
+                if result_item['name'].lower() == new_item_name_lower:
                     # Сохраняем icon (никогда не перезаписываем)
                     saved_icon = result_item.get('icon')
                     saved_permanent = result_item.get('permanent')
