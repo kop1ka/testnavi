@@ -710,14 +710,32 @@ def get_catalog():
     
     # Добавляем проекты из папки projects напрямую в каталог (без создания папки projects)
     if os.path.exists(PROJECTS_DIR):
+        # Создаём словарь существующих проектов для быстрого поиска
+        existing_projects = {}
+        for item in catalog.get('children', []):
+            if item.get('url', '').startswith('/projects/'):
+                project_name_from_url = item['url'].split('/')[2]
+                existing_projects[project_name_from_url.lower()] = item
+        
         for project_name in os.listdir(PROJECTS_DIR):
             project_path = os.path.join(PROJECTS_DIR, project_name)
             if os.path.isdir(project_path):
                 index_html_path = os.path.join(project_path, 'index.html')
                 if os.path.exists(index_html_path):
+                    # Проверяем, есть ли уже этот проект в каталоге с пользовательской иконкой
+                    existing_project = existing_projects.get(project_name.lower())
+                    
+                    # Если проект уже существует и имеет пользовательскую иконку (не default), сохраняем её
+                    icon_to_use = "page/logo.png"
+                    if existing_project and existing_project.get('icon'):
+                        existing_icon = existing_project.get('icon', '')
+                        # Сохраняем существующую иконку если она отличается от дефолтной
+                        if existing_icon and existing_icon.strip() != '' and existing_icon != 'page/logo.png':
+                            icon_to_use = existing_icon
+                    
                     project_item = {
                         "name": project_name,
-                        "icon": "page/logo.png",
+                        "icon": icon_to_use,
                         "children": None,
                         "url": f"/projects/{project_name}/index.html",
                         "modified": datetime.fromtimestamp(os.path.getmtime(index_html_path)).strftime('%Y-%m-%d %H:%M'),
