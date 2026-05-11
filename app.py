@@ -712,10 +712,13 @@ def get_catalog():
     if os.path.exists(PROJECTS_DIR):
         # Создаём словарь существующих проектов для быстрого поиска
         existing_projects = {}
-        for item in catalog.get('children', []):
-            if item.get('url', '').startswith('/projects/'):
-                project_name_from_url = item['url'].split('/')[2]
-                existing_projects[project_name_from_url.lower()] = item
+        children = catalog.get('children') or []
+        for item in children:
+            if item and isinstance(item, dict):
+                url_val = item.get('url')
+                if url_val and str(url_val).startswith('/projects/'):
+                    project_name_from_url = url_val.split('/')[2]
+                    existing_projects[project_name_from_url.lower()] = item
         
         for project_name in os.listdir(PROJECTS_DIR):
             project_path = os.path.join(PROJECTS_DIR, project_name)
