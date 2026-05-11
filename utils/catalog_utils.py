@@ -126,6 +126,7 @@ def _merge_children_keep_all(new_children, existing_children, permanent_paths, p
                 if result_item['name'] == new_item['name']:
                     # Сохраняем icon (никогда не перезаписываем)
                     saved_icon = result_item.get('icon')
+                    saved_permanent = result_item.get('permanent')
                     
                     # Рекурсивно обновляем children
                     if new_item.get('children') is not None:
@@ -142,9 +143,11 @@ def _merge_children_keep_all(new_children, existing_children, permanent_paths, p
                     if 'modified' in new_item:
                         result[i]['modified'] = new_item['modified']
                     
-                    # Восстанавливаем сохранённый icon
+                    # Восстанавливаем сохранённый icon и permanent статус
                     if saved_icon is not None:
                         result[i]['icon'] = saved_icon
+                    if saved_permanent is not None:
+                        result[i]['permanent'] = saved_permanent
                     
                     break
         else:
