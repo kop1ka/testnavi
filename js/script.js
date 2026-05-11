@@ -316,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----- Загрузка каталога с сервера -----
     async function loadCatalog() {
         try {
-            const response = await fetch('/data/catalog.json');
+            const response = await fetch('/api/catalog');
             if (!response.ok) throw new Error('Ошибка загрузки');
             catalogData = await response.json();
             if (sidebar.classList.contains('active')) {
