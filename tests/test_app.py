@@ -255,7 +255,8 @@ class TestUIRequirements:
     
     def test_catalog_json_structure(self):
         """JSON каталога должен иметь правильную структуру"""
-        catalog = load_catalog()
+        from config.settings import CATALOG_FILE
+        catalog = load_catalog(CATALOG_FILE)
         
         assert 'name' in catalog
         assert 'children' in catalog
