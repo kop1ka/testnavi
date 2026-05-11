@@ -1,5 +1,5 @@
 ```
-# Python cache
+# Python
 __pycache__/
 *.pyc
 *.pyo
@@ -9,8 +9,12 @@ __pycache__/
 *.log
 *.tmp
 
-# Environment files
+# Environment
 .env
 .env.local
 *.env.*
+
+# Dependencies
+.venv/
+venv/
 ```

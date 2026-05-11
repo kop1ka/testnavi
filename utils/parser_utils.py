@@ -3,6 +3,7 @@ import json
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import unquote, urljoin
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 def extract_items_from_html(html_content, base_url):
@@ -65,7 +66,21 @@ def extract_items_from_html(html_content, base_url):
     return items
 
 
-def parse_folder(url, visited=None, depth=0, max_depth=10, timeout=10):
+def parse_folder(url, visited=None, depth=0, max_depth=10, timeout=10, max_workers=5):
+    """
+    Парсинг FTP-каталога с использованием многопоточности для ускорения
+    
+    Args:
+        url: URL для парсинга
+        visited: множество посещённых URL
+        depth: текущая глубина рекурсии
+        max_depth: максимальная глубина парсинга
+        timeout: таймаут запроса в секундах
+        max_workers: максимальное количество потоков для параллельного парсинга
+    
+    Returns:
+        list: список элементов каталога
+    """
     if visited is None:
         visited = set()
     
@@ -80,15 +95,41 @@ def parse_folder(url, visited=None, depth=0, max_depth=10, timeout=10):
         
         items = extract_items_from_html(response.text, url)
         
+        # Собрать все папки для параллельного парсинга
+        folders_to_parse = []
         for item in items:
             if item['children'] is not None and item['url']:
-                try:
-                    children = parse_folder(item['url'], visited, depth + 1, max_depth, timeout)
-                    item['children'] = children
-                except Exception:
-                    item['children'] = []
+                folders_to_parse.append(item)
+        
+        # Параллельный парсинг папок
+        if folders_to_parse and depth < max_depth:
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                future_to_item = {}
+                for item in folders_to_parse:
+                    future = executor.submit(
+                        _parse_folder_recursive,
+                        item['url'],
+                        visited,
+                        depth + 1,
+                        max_depth,
+                        timeout
+                    )
+                    future_to_item[future] = item
+                
+                for future in as_completed(future_to_item):
+                    item = future_to_item[future]
+                    try:
+                        children = future.result()
+                        item['children'] = children
+                    except Exception:
+                        item['children'] = []
         
         return items
         
     except Exception:
         return []
+
+
+def _parse_folder_recursive(url, visited, depth, max_depth, timeout):
+    """Вспомогательная функция для рекурсивного парсинга"""
+    return parse_folder(url, visited, depth, max_depth, timeout)
