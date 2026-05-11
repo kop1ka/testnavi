@@ -60,6 +60,9 @@ def merge_with_permanent(new_data, existing_catalog, permanent_paths, parent_pat
                 # Начинаем с копии существующего элемента (сохраняем icon и другие свойства)
                 merged_item = existing_item.copy()
                 
+                # Проверяем, есть ли у элемента пользовательская иконка (не пустая и не None)
+                has_custom_icon = existing_item.get('icon') and existing_item.get('icon').strip() != ''
+                
                 # Обновляем только базовые данные из парсера (children, url, modified)
                 # Никогда не перезаписываем icon и другие пользовательские свойства
                 if 'children' in new_item:
@@ -72,12 +75,13 @@ def merge_with_permanent(new_data, existing_catalog, permanent_paths, parent_pat
                         )
                     else:
                         merged_item['children'] = None
-                # НЕ обновляем url и modified из парсера для непостоянных элементов с установленным icon
+                # НЕ обновляем url и modified из парсера для элементов с пользовательской иконкой
                 # Сохраняем пользовательский icon навсегда
-                if 'url' in new_item and existing_item.get('icon') is None:
-                    merged_item['url'] = new_item['url']
-                if 'modified' in new_item and existing_item.get('icon') is None:
-                    merged_item['modified'] = new_item['modified']
+                if not has_custom_icon:
+                    if 'url' in new_item:
+                        merged_item['url'] = new_item['url']
+                    if 'modified' in new_item:
+                        merged_item['modified'] = new_item['modified']
                 
                 result.append(merged_item)
             else:
@@ -130,6 +134,9 @@ def _merge_children_keep_all(new_children, existing_children, permanent_paths, p
                     saved_icon = result_item.get('icon')
                     saved_permanent = result_item.get('permanent')
                     
+                    # Проверяем, есть ли пользовательская иконка
+                    has_custom_icon = saved_icon and saved_icon.strip() != ''
+                    
                     # Рекурсивно обновляем children
                     if new_item.get('children') is not None:
                         result[i]['children'] = _merge_children_keep_all(
@@ -141,10 +148,11 @@ def _merge_children_keep_all(new_children, existing_children, permanent_paths, p
                     
                     # Обновляем url и modified из парсера, но не icon
                     # НЕ обновляем url/modified если есть пользовательский icon
-                    if 'url' in new_item and result_item.get('icon') is None:
-                        result[i]['url'] = new_item['url']
-                    if 'modified' in new_item and result_item.get('icon') is None:
-                        result[i]['modified'] = new_item['modified']
+                    if not has_custom_icon:
+                        if 'url' in new_item:
+                            result[i]['url'] = new_item['url']
+                        if 'modified' in new_item:
+                            result[i]['modified'] = new_item['modified']
                     
                     # Восстанавливаем сохранённый icon и permanent статус
                     if saved_icon is not None:
