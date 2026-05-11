@@ -31,10 +31,8 @@ def get_full_timestamp():
     return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 
-# Утилиты для работы с пользователями
 def load_users(users_file, hash_password_func):
     """Загрузить данные пользователей из JSON файла"""
-    from datetime import datetime
     return load_json_file(users_file, default={
         "users": [{
             "id": 1,
@@ -51,7 +49,6 @@ def save_users(users_file, data):
     save_json_file(users_file, data)
 
 
-# Утилиты для работы с каталогом
 def load_catalog(catalog_file):
     """Загрузить основной каталог из JSON файла"""
     return load_json_file(catalog_file, default={
@@ -66,7 +63,6 @@ def save_catalog(catalog_file, data):
     save_json_file(catalog_file, data)
 
 
-# Утилиты для работы с постоянными элементами
 def load_permanent_items(permanent_file):
     """Загрузить список постоянных элементов из JSON файла"""
     return load_json_file(permanent_file, default={"permanent_items": []})
