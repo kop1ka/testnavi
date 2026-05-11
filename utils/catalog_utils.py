@@ -25,6 +25,7 @@ def merge_with_permanent(new_data, existing_catalog, permanent_paths, parent_pat
     
     Для непостоянных элементов также сохраняются существующие свойства (icon и др.),
     обновляются только базовые данные из парсера (children, modified, url).
+    Свойство 'icon' никогда не перезаписывается данными из парсера - оно сохраняется из существующего каталога.
     """
     result = []
     existing_by_name = {item['name']: item for item in existing_catalog}
@@ -59,7 +60,8 @@ def merge_with_permanent(new_data, existing_catalog, permanent_paths, parent_pat
                 # Начинаем с копии существующего элемента (сохраняем icon и другие свойства)
                 merged_item = existing_item.copy()
                 
-                # Обновляем только базовые данные из парсера
+                # Обновляем только базовые данные из парсера (children, url, modified)
+                # Никогда не перезаписываем icon и другие пользовательские свойства
                 if 'children' in new_item:
                     if new_item['children'] is not None:
                         merged_item['children'] = _merge_children_keep_all(
@@ -101,6 +103,10 @@ def _merge_children_keep_all(new_children, existing_children, permanent_paths, p
     """
     Рекурсивно объединяет children, сохраняя ВСЕ существующие элементы
     и добавляя новые из парсера.
+    
+    Для существующих элементов сохраняются пользовательские свойства (icon и др.),
+    обновляются только базовые данные из парсера (children, url, modified).
+    Свойство 'icon' никогда не перезаписывается данными из парсера.
     """
     # Начинаем с копии всех существующих детей
     result = []
@@ -118,6 +124,9 @@ def _merge_children_keep_all(new_children, existing_children, permanent_paths, p
             # Находим существующий элемент в результате
             for i, result_item in enumerate(result):
                 if result_item['name'] == new_item['name']:
+                    # Сохраняем icon (никогда не перезаписываем)
+                    saved_icon = result_item.get('icon')
+                    
                     # Рекурсивно обновляем children
                     if new_item.get('children') is not None:
                         result[i]['children'] = _merge_children_keep_all(
@@ -126,6 +135,17 @@ def _merge_children_keep_all(new_children, existing_children, permanent_paths, p
                             permanent_paths,
                             current_path
                         )
+                    
+                    # Обновляем url и modified из парсера, но не icon
+                    if 'url' in new_item:
+                        result[i]['url'] = new_item['url']
+                    if 'modified' in new_item:
+                        result[i]['modified'] = new_item['modified']
+                    
+                    # Восстанавливаем сохранённый icon
+                    if saved_icon is not None:
+                        result[i]['icon'] = saved_icon
+                    
                     break
         else:
             # Новый элемент - добавляем
