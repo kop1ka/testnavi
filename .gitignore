@@ -12,9 +12,5 @@ __pycache__/
 # Environment
 .env
 .env.local
-*.env.*
-
-# Dependencies
-.venv/
-venv/
+.env.*
 ```
