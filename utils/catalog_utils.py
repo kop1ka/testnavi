@@ -22,6 +22,9 @@ def merge_with_permanent(new_data, existing_catalog, permanent_paths, parent_pat
     
     Если элемент является постоянным и существует в старом каталоге,
     он берётся из старого каталога целиком (сохраняются все свойства: icon, children и т.д.)
+    
+    Для непостоянных элементов также сохраняются существующие свойства (icon и др.),
+    обновляются только базовые данные из парсера (children, modified, url).
     """
     result = []
     existing_by_name = {item['name']: item for item in existing_catalog}
@@ -49,16 +52,41 @@ def merge_with_permanent(new_data, existing_catalog, permanent_paths, parent_pat
             
             result.append(merged_item)
         else:
-            # Для непостоянных элементов берём новые данные
-            # но пытаемся сохранить children из существующих если они есть
-            if 'children' in new_item and new_item['children'] is not None:
-                new_item['children'] = _merge_children_keep_all(
-                    new_item['children'],
-                    existing_by_name.get(new_item['name'], {}).get('children', []),
-                    permanent_paths,
-                    current_path
-                )
-            result.append(new_item)
+            # Для непостоянных элементов
+            # Если элемент уже существовал - сохраняем его свойства (icon и др.)
+            if new_item['name'] in existing_by_name:
+                existing_item = existing_by_name[new_item['name']]
+                # Начинаем с копии существующего элемента (сохраняем icon и другие свойства)
+                merged_item = existing_item.copy()
+                
+                # Обновляем только базовые данные из парсера
+                if 'children' in new_item:
+                    if new_item['children'] is not None:
+                        merged_item['children'] = _merge_children_keep_all(
+                            new_item['children'],
+                            existing_item.get('children', []),
+                            permanent_paths,
+                            current_path
+                        )
+                    else:
+                        merged_item['children'] = None
+                if 'url' in new_item:
+                    merged_item['url'] = new_item['url']
+                if 'modified' in new_item:
+                    merged_item['modified'] = new_item['modified']
+                
+                result.append(merged_item)
+            else:
+                # Новый элемент - берём данные из парсера
+                # но пытаемся сохранить children из существующих если они есть
+                if 'children' in new_item and new_item['children'] is not None:
+                    new_item['children'] = _merge_children_keep_all(
+                        new_item['children'],
+                        existing_by_name.get(new_item['name'], {}).get('children', []),
+                        permanent_paths,
+                        current_path
+                    )
+                result.append(new_item)
     
     # Добавляем постоянные элементы, которых нет в новых данных парсера
     for name, existing_item in existing_by_name.items():
