@@ -950,24 +950,14 @@ def get_images():
     """
     API endpoint для получения списка всех доступных изображений
     
-    Сканирует папку page/ на наличие изображений и добавляет
-    изображения, найденные парсером (из файла parser_images.json).
+    Возвращает изображения, найденные парсером (из файла parser_images.json).
+    НЕ сканирует папки page/ и projects/ - используем только изображения от парсера.
     
     Returns:
         Response: JSON массив объектов с информацией об изображениях в UTF-8
     """
-    page_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'page')
     images = []
     seen_paths = set()  # Для предотвращения дубликатов
-    
-    # Сканировать папку page
-    if os.path.exists(page_dir):
-        for filename in os.listdir(page_dir):
-            if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp')):
-                path = f'page/{filename}'
-                if path not in seen_paths:
-                    images.append({'name': filename, 'path': path})
-                    seen_paths.add(path)
     
     # Загрузить изображения из парсера (сохранённые в файле)
     parser_images_data = load_json_file(PARSER_IMAGES_FILE, default={'images': []})
