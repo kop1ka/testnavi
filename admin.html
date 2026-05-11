@@ -948,6 +948,7 @@
                     await togglePermanent(path, isPermanent);
 
                     showStatus('Элемент успешно обновлён', 'success');
+                    selectedImage = null; // Сбросить выбранное изображение после обновления
                     await loadCatalog();
                     await loadPermanentItems();
                     
@@ -1012,6 +1013,7 @@
                     showStatus('Элемент успешно добавлен', 'success');
                     document.getElementById('addForm').reset();
                     document.getElementById('addParentPath').value = '';
+                    selectedImage = null; // Сбросить выбранное изображение
                     await loadCatalog();
                     await loadPermanentItems();
                     
@@ -1048,6 +1050,7 @@
                     showStatus('Элемент успешно удалён', 'success');
                     document.getElementById('editForm').classList.add('hidden');
                     selectedElement = null;
+                    selectedImage = null; // Сбросить выбранное изображение при удалении
                     await loadCatalog();
                     await loadPermanentItems();
                 } else {
