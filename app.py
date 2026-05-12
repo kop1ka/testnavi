@@ -249,7 +249,7 @@ def login():
                 login_user(user_obj, remember=remember)
                 next_page = request.args.get('next')
                 flash('Вы успешно вошли в систему', 'success')
-                return redirect(next_page if next_page else url_for('admin'))
+                return redirect(next_page if next_page else url_for('index'))
             else:
                 error = 'Неверное имя пользователя или пароль'
     
