@@ -1163,51 +1163,6 @@ def serve_project_file(filename):
     """
     # Декодируем URL-encoded имя файла для корректной работы с кириллическими именами папок
     decoded_filename = unquote(filename)
-    
-    # Определяем проект и тип файла
-    parts = decoded_filename.split(os.sep, 1)
-    if len(parts) < 2:
-        return send_from_directory(PROJECTS_DIR, decoded_filename, max_age=86400)
-    
-    project_name = parts[0]
-    relative_path = parts[1]
-    project_dir = os.path.join(PROJECTS_DIR, project_name)
-    full_path = os.path.join(project_dir, relative_path)
-    
-    # Если это HTML файл, нужно обработать шаблоны Jinja2
-    if relative_path.endswith('.html'):
-        if not os.path.exists(full_path):
-            return jsonify({'error': 'Файл не найден'}), 404
-        
-        with open(full_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-        
-        # Заменяем {{ url_for('static', filename='...') }} на правильный путь
-        # Для проектов статика находится в папке static внутри проекта
-        import re
-        
-        def replace_url_for(match):
-            static_filename = match.group(1).strip()
-            # Передаем raw путь без кодирования - Flask сам закодирует в url_for
-            return url_for('serve_project_file', filename=f"{project_name}/static/{static_filename}")
-        
-        # Паттерн для {{ url_for('static', filename='...') }}
-        pattern = r"\{\{\s*url_for\(\s*'static'\s*,\s*filename\s*=\s*'([^']+)'\s*\)\s*\}\}"
-        content = re.sub(pattern, replace_url_for, content)
-        
-        # Также обрабатываем url_for для других маршрутов внутри проекта
-        def replace_url_for_route(match):
-            route_name = match.group(1).strip()
-            # Для простоты, если это внутренний маршрут проекта, строим относительный путь
-            # В данном случае просто возвращаем относительный путь
-            return f"/projects/{quote(project_name)}/{route_name}"
-        
-        # Паттерн для {{ url_for('route_name') }} без filename
-        pattern2 = r"\{\{\s*url_for\(\s*'([^']+)'(?:\s*,\s*[^)]+)?\s*\)\s*\}\}(?!\s*filename)"
-        content = re.sub(pattern2, lambda m: f"/projects/{quote(project_name)}/{m.group(1).strip()}", content)
-        
-        return Response(content, mimetype='text/html; charset=utf-8')
-    
     return send_from_directory(PROJECTS_DIR, decoded_filename, max_age=86400)  # Кэширование на 24 часа
 
 
