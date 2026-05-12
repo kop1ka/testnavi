@@ -1213,6 +1213,35 @@ def serve_project_file(filename):
     return send_from_directory(PROJECTS_DIR, decoded_filename, max_age=86400)
 
 
+# Маршруты для проекта ПарадЗвёзд! - API endpoints
+@app.route('/projects/<project_name>/api/nomination/<nomination_id>')
+def api_nomination(project_name, nomination_id):
+    """API endpoint для получения записей номинации"""
+    # Это заглушка - реальные данные должны приходить из БД проекта
+    return jsonify([])
+
+
+@app.route('/projects/<project_name>/api/scenarios')
+def api_scenarios(project_name):
+    """API endpoint для получения списка сценариев"""
+    # Это заглушка - реальные данные должны приходить из БД проекта
+    return jsonify([])
+
+
+@app.route('/projects/<project_name>/api/admin/login', methods=['POST'])
+def api_admin_login(project_name):
+    """API endpoint для входа администратора"""
+    data = request.get_json()
+    username = data.get('username', '')
+    password = data.get('password', '')
+    
+    # Простая проверка (в реальном проекте должна быть проверка через БД)
+    if username == 'admin' and password == 'anosov.museum':
+        session[f'{project_name}_admin'] = True
+        return jsonify({'success': True})
+    return jsonify({'error': 'Неверный логин или пароль'}), 401
+
+
 
 @app.route('/api/proxy-image')
 def proxy_image():
