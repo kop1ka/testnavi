@@ -1,9 +1,25 @@
 ```
 # Python
 __pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+.ENV
+.ENV.local
+.env
+.env.local
+.env.*
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
 *.py[cod]
 *$py.class
-*.so
+
+# Distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -21,16 +37,9 @@ wheels/
 .installed.cfg
 *.egg
 
-# Environment
-.env
-.env.local
-*.env.*
-
-# IDE
+# IDEs
 .vscode/
 .idea/
-*.swp
-*.swo
 
 # OS
 .DS_Store
@@ -43,5 +52,20 @@ Thumbs.db
 .coverage
 htmlcov/
 .coverage.*
-.coverage.xml
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Temporary files
+*.tmp
+*.temp
+*~
+.swp
+.swo
+
+# Git
+.git/
 ```
