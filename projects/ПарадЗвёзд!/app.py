@@ -46,20 +46,21 @@ def create_blueprint():
     """
     # Создаём Blueprint для проекта "ПарадЗвёзд"
     # url_prefix будет установлен при регистрации в главном приложении
-    # static_url_path НЕ указываем - Flask автоматически добавит префикс при регистрации
+    # static_url_path настроен явно для корректной работы статики
     parad_zvezd_bp = Blueprint(
         'parad_zvezd', 
         __name__, 
         template_folder='templates',
-        static_folder='static'
-        # static_url_path не указываем - будет автоматически '/projects/ПарадЗвёзд!/static'
+        static_folder='static',
+        static_url_path='/static'  # Явно указываем путь к статике относительно префикса Blueprint
     )
     
-    # Инициализируем БД при создании Blueprint
-    try:
-        init_db()
-    except Exception as e:
-        print(f"Warning: Could not initialize database: {e}")
+    # Инициализируем БД при создании Blueprint (только если функция существует)
+    if 'init_db' in globals():
+        try:
+            init_db()
+        except Exception as e:
+            print(f"Warning: Could not initialize database: {e}")
     
     return parad_zvezd_bp
 

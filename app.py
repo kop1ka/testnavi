@@ -1158,6 +1158,31 @@ def serve_js(filename):
     return response
 
 
+
+@app.route('/projects/<project_name>/static/<path:filename>')
+def serve_project_static(project_name, filename):
+    """
+    API endpoint для раздачи статических файлов проектов из папки projects/<project>/static/
+    
+    Этот маршрут должен быть объявлен ДО общего маршрута /projects/<path:filename>,
+    чтобы перехватывать запросы к статике до того, как они попадут в общий обработчик.
+
+    Args:
+        project_name: Имя проекта
+        filename: Путь к файлу относительно папки static проекта
+
+    Returns:
+        Response: Статический файл проекта (css, js, images, etc.)
+    """
+    project_path = os.path.join(PROJECTS_DIR, project_name)
+    static_folder = os.path.join(project_path, 'static')
+    
+    # Проверяем существование проекта и папки static
+    if not os.path.exists(static_folder) or not os.path.isdir(static_folder):
+        return jsonify({'error': f'Статика не найдена для проекта: {project_name}'}), 404
+    
+    return send_from_directory(static_folder, filename, max_age=86400)
+
 @app.route('/projects/<path:filename>')
 @app.route('/projects/<project_name>')
 @app.route('/projects/<project_name>/')
