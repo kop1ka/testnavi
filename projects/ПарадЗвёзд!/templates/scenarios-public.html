@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Парад Звёзд - Сценарии</title>
-    <link rel="stylesheet" href="../static/styles.css">
+    <link rel="stylesheet" href="/projects/ПарадЗвёзд!/static/styles.css">
 </head>
 <body>
     <div class="page-container">
@@ -32,7 +32,7 @@
 
     <script>
         async function loadScenarios() {
-            const res = await fetch('../api/scenarios');
+            const res = await fetch('/projects/ПарадЗвёзд!/api/scenarios');
             const scenarios = await res.json();
             const container = document.getElementById('scenariosList');
             const emptyState = document.getElementById('emptyState');
@@ -64,7 +64,7 @@
             return '📄';
         }
         async function viewScenario(id) {
-            const res = await fetch('../api/scenarios');
+            const res = await fetch('/projects/ПарадЗвёзд!/api/scenarios');
             const scenarios = await res.json();
             const scenario = scenarios.find(s => s.id === id);
             if (!scenario) return;

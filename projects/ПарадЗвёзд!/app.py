@@ -128,7 +128,7 @@ def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         if not session.get('is_admin'):
-            return redirect(url_for('admin_login'))
+            return redirect('/projects/ПарадЗвёзд!/admin/login')
         return f(*args, **kwargs)
     return decorated
 
@@ -195,7 +195,7 @@ def admin_login():
         pwd_hash = hashlib.sha256(password.encode()).hexdigest()
         if username == ADMIN_USERNAME and pwd_hash == ADMIN_PASSWORD_HASH:
             session['is_admin'] = True
-            return redirect(url_for('admin_panel'))
+            return redirect('/projects/ПарадЗвёзд!/admin/')
         return render_template('login.html', error='Неверный логин или пароль')
     return render_template('login.html')
 
@@ -203,7 +203,7 @@ def admin_login():
 @app.route('/admin/logout')
 def admin_logout():
     session.pop('is_admin', None)
-    return redirect(url_for('index'))
+    return redirect('/projects/ПарадЗвёзд!/')
 
 
 @app.route('/admin/')

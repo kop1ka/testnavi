@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Управление номинациями - Админ</title>
-    <link rel="stylesheet" href="../static/styles.css">
+    <link rel="stylesheet" href="/projects/ПарадЗвёзд!/static/styles.css">
 </head>
 <body>
     <div class="page-container">
@@ -35,13 +35,13 @@
     </div>
     <script>
         function exportData() {
-            window.location.href = '../api/admin/export';
+            window.location.href = '/projects/ПарадЗвёзд!/api/admin/export';
         }
         async function importData(input) {
             if (!input.files.length) return;
             const formData = new FormData();
             formData.append('file', input.files[0]);
-            const res = await fetch('../api/admin/import', { method: 'POST', body: formData });
+            const res = await fetch('/projects/ПарадЗвёзд!/api/admin/import', { method: 'POST', body: formData });
             const result = await res.json();
             if (result.success) {
                 alert('Данные успешно импортированы!');
