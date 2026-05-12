@@ -7,14 +7,6 @@ from flask import Blueprint, render_template, request, jsonify, session, redirec
 import pymysql
 from pymysql.cursors import DictCursor
 
-# Создаём Blueprint для проекта "ПарадЗвёзд"
-parad_zvezd_bp = Blueprint('parad_zvezd', __name__, 
-                           template_folder='templates',
-                           static_folder='static',
-                           url_prefix='/parad-zvezd')
-
-app = parad_zvezd_bp  # Для совместимости со старым кодом
-
 # ------------------- Конфигурация БД -------------------
 DB_CONFIG = {
     'host': 'localhost',
@@ -43,6 +35,36 @@ NOMINATIONS = {
     'zvezdnyy-intellekt': 'Звёздный интеллект',
     'zvezdnyy-vypusknik': 'Звёздный выпускник'
 }
+
+
+def create_blueprint():
+    """
+    Фабрика Blueprint для проекта ПарадЗвёзд
+    
+    Returns:
+        Blueprint: Настроенный Blueprint проекта
+    """
+    # Создаём Blueprint для проекта "ПарадЗвёзд"
+    # url_prefix не указываем здесь - он будет установлен при регистрации в главном приложении
+    parad_zvezd_bp = Blueprint(
+        'parad_zvezd', 
+        __name__, 
+        template_folder='templates',
+        static_folder='static'
+    )
+    
+    # Инициализируем БД при создании Blueprint
+    try:
+        init_db()
+    except Exception as e:
+        print(f"Warning: Could not initialize database: {e}")
+    
+    return parad_zvezd_bp
+
+
+# Создаём Blueprint через фабрику
+parad_zvezd_bp = create_blueprint()
+app = parad_zvezd_bp  # Для совместимости со старым кодом
 
 
 # ------------------- Вспомогательные функции БД -------------------
@@ -399,6 +421,7 @@ def admin_import():
 def create_app(secret_key='supersecretkeychangeme'):
     """
     Фабрика приложений для регистрации Blueprint в главном приложении
+    (устаревшая функция, используйте create_blueprint())
     
     Args:
         secret_key: Секретный ключ для сессий
@@ -406,16 +429,7 @@ def create_app(secret_key='supersecretkeychangeme'):
     Returns:
         Blueprint: Настроенный Blueprint проекта ПарадЗвёзд
     """
-    # Инициализируем БД при создании приложения
-    try:
-        init_db()
-    except Exception as e:
-        print(f"Warning: Could not initialize database: {e}")
-    
-    # Устанавливаем секретный ключ через конфигурацию parent приложения
-    parad_zvezd_bp.app = lambda: None  # Заглушка для совместимости
-    parad_zvezd_bp.secret_key = secret_key
-    return parad_zvezd_bp
+    return create_blueprint()
 
 
 if __name__ == '__main__':
