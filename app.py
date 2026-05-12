@@ -723,42 +723,56 @@ def get_catalog():
         for project_name in os.listdir(PROJECTS_DIR):
             project_path = os.path.join(PROJECTS_DIR, project_name)
             if os.path.isdir(project_path):
-                index_html_path = os.path.join(project_path, 'index.html')
-                if os.path.exists(index_html_path):
-                    # Проверяем, есть ли уже этот проект в каталоге
-                    existing_idx = existing_project_indices.get(project_name.lower())
+                # Ищем index.html в нескольких возможных местах
+                possible_index_paths = [
+                    os.path.join(project_path, 'index.html'),
+                    os.path.join(project_path, 'templates', 'index.html'),
+                    os.path.join(project_path, 'app', 'index.html')
+                ]
+                
+                index_html_path = None
+                for possible_path in possible_index_paths:
+                    if os.path.exists(possible_path):
+                        index_html_path = possible_path
+                        break
+                
+                if index_html_path is None:
+                    continue
+                
+                # Проверяем, есть ли уже этот проект в каталоге
+                existing_idx = existing_project_indices.get(project_name.lower())
+                
+                # Если проект уже существует, обновляем его вместо добавления нового
+                if existing_idx is not None:
+                    existing_project = children[existing_idx]
+                    # Сохраняем пользовательскую иконку если она есть
+                    icon_to_use = "page/logo.png"
+                    if existing_project.get('icon'):
+                        existing_icon = existing_project.get('icon', '')
+                        if existing_icon and existing_icon.strip() != '' and existing_icon != 'page/logo.png':
+                            icon_to_use = existing_icon
                     
-                    # Если проект уже существует, обновляем его вместо добавления нового
-                    if existing_idx is not None:
-                        existing_project = children[existing_idx]
-                        # Сохраняем пользовательскую иконку если она есть
-                        icon_to_use = "page/logo.png"
-                        if existing_project.get('icon'):
-                            existing_icon = existing_project.get('icon', '')
-                            if existing_icon and existing_icon.strip() != '' and existing_icon != 'page/logo.png':
-                                icon_to_use = existing_icon
-                        
-                        children[existing_idx] = {
-                            "name": existing_project.get('name', project_name),
-                            "icon": icon_to_use,
-                            "children": None,
-                            "url": f"/projects/{project_name}/index.html",
-                            "modified": datetime.fromtimestamp(os.path.getmtime(index_html_path)).strftime('%Y-%m-%d %H:%M'),
-                            "permanent": True
-                        }
-                    else:
-                        # Проект не найден, добавляем новый
-                        project_item = {
-                            "name": project_name,
-                            "icon": "page/logo.png",
-                            "children": None,
-                            "url": f"/projects/{project_name}/index.html",
-                            "modified": datetime.fromtimestamp(os.path.getmtime(index_html_path)).strftime('%Y-%m-%d %H:%M'),
-                            "permanent": True
-                        }
-                        catalog["children"].insert(0, project_item)
-                        # Обновляем индекс для будущих итераций
-                        existing_project_indices[project_name.lower()] = 0
+                    children[existing_idx] = {
+                        "name": existing_project.get('name', project_name),
+                        "icon": icon_to_use,
+                        "children": None,
+                        "url": f"/projects/{project_name}/index.html",
+                        "modified": datetime.fromtimestamp(os.path.getmtime(index_html_path)).strftime('%Y-%m-%d %H:%M'),
+                        "permanent": True
+                    }
+                else:
+                    # Проект не найден, добавляем новый
+                    project_item = {
+                        "name": project_name,
+                        "icon": "page/logo.png",
+                        "children": None,
+                        "url": f"/projects/{project_name}/index.html",
+                        "modified": datetime.fromtimestamp(os.path.getmtime(index_html_path)).strftime('%Y-%m-%d %H:%M'),
+                        "permanent": True
+                    }
+                    catalog["children"].insert(0, project_item)
+                    # Обновляем индекс для будущих итераций
+                    existing_project_indices[project_name.lower()] = 0
     
     response = jsonify(catalog)
     # Добавляем заголовки для предотвращения кэширования API ответов
