@@ -1174,41 +1174,44 @@ def serve_project_file(filename):
     project_dir = os.path.join(PROJECTS_DIR, project_name)
     full_path = os.path.join(project_dir, relative_path)
     
-    # Если это HTML файл, нужно обработать шаблоны Jinja2
-    if relative_path.endswith('.html'):
+    # Если это HTML файл или маршрут без расширения (например, /nominations_public),
+    # нужно обработать шаблоны Jinja2 и возможно отдать index.html
+    if relative_path.endswith('.html') or (not '.' in relative_path.split('/')[-1]):
+        # Если файл не существует, но это может быть маршрут проекта (нет расширения),
+        # пробуем отдать index.html из проекта
         if not os.path.exists(full_path):
-            return jsonify({'error': 'Файл не найден'}), 404
+            index_path = os.path.join(project_dir, 'index.html')
+            if os.path.exists(index_path):
+                full_path = index_path
+                relative_path = 'index.html'
+            else:
+                return jsonify({'error': 'Файл не найден'}), 404
         
         with open(full_path, 'r', encoding='utf-8') as f:
             content = f.read()
         
         # Заменяем {{ url_for('static', filename='...') }} на правильный путь
-        # Для проектов статика находится в папке static внутри проекта
         import re
         
         def replace_url_for(match):
             static_filename = match.group(1).strip()
-            # Передаем raw путь без кодирования - Flask сам закодирует в url_for
             return url_for('serve_project_file', filename=f"{project_name}/static/{static_filename}")
         
-        # Паттерн для {{ url_for('static', filename='...') }}
         pattern = r"\{\{\s*url_for\(\s*'static'\s*,\s*filename\s*=\s*'([^']+)'\s*\)\s*\}\}"
         content = re.sub(pattern, replace_url_for, content)
         
         # Также обрабатываем url_for для других маршрутов внутри проекта
         def replace_url_for_route(match):
             route_name = match.group(1).strip()
-            # Для простоты, если это внутренний маршрут проекта, строим относительный путь
-            # В данном случае просто возвращаем относительный путь
             return f"/projects/{quote(project_name)}/{route_name}"
         
-        # Паттерн для {{ url_for('route_name') }} без filename
-        pattern2 = r"\{\{\s*url_for\(\s*'([^']+)'(?:\s*,\s*[^)]+)?\s*\)\s*\}\}(?!\s*filename)"
+        pattern2 = r"\{\{\s*url_for\(\s*'([^']+)'\s*(?:\s*,\s*[^)]+)?\s*\)\s*\}\}(?!\s*filename)"
         content = re.sub(pattern2, lambda m: f"/projects/{quote(project_name)}/{m.group(1).strip()}", content)
         
         return Response(content, mimetype='text/html; charset=utf-8')
     
-    return send_from_directory(PROJECTS_DIR, decoded_filename, max_age=86400)  # Кэширование на 24 часа
+    return send_from_directory(PROJECTS_DIR, decoded_filename, max_age=86400)
+
 
 
 @app.route('/api/proxy-image')
