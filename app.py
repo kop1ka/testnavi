@@ -38,6 +38,9 @@ from config.settings import (
 # Директория для проектов
 PROJECTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'projects')
 
+# Словарь для хранения информации о проектах Flask
+project_flask_info = {}
+
 # Импорт утилит для работы с данными, парсингом, аутентификацией и каталогом
 from utils.data_utils import (
     ensure_data_dir, load_json_file, save_json_file, get_current_timestamp, get_full_timestamp,
@@ -739,6 +742,18 @@ def get_catalog():
                 if index_html_path is None:
                     continue
                 
+                # Проверяем, есть ли Flask приложение в проекте
+                flask_app_path = os.path.join(project_path, 'app.py')
+                has_flask = os.path.exists(flask_app_path)
+                
+                # Если это Flask приложение, сохраняем информацию о нём
+                if has_flask:
+                    project_flask_info[project_name] = {
+                        'app_path': flask_app_path,
+                        'loaded': False,
+                        'error': None
+                    }
+                
                 # Проверяем, есть ли уже этот проект в каталоге
                 existing_idx = existing_project_indices.get(project_name.lower())
                 
@@ -758,7 +773,8 @@ def get_catalog():
                         "children": None,
                         "url": f"/projects/{project_name}/index.html",
                         "modified": datetime.fromtimestamp(os.path.getmtime(index_html_path)).strftime('%Y-%m-%d %H:%M'),
-                        "permanent": True
+                        "permanent": True,
+                        "has_flask": has_flask
                     }
                 else:
                     # Проект не найден, добавляем новый
@@ -768,7 +784,8 @@ def get_catalog():
                         "children": None,
                         "url": f"/projects/{project_name}/index.html",
                         "modified": datetime.fromtimestamp(os.path.getmtime(index_html_path)).strftime('%Y-%m-%d %H:%M'),
-                        "permanent": True
+                        "permanent": True,
+                        "has_flask": has_flask
                     }
                     catalog["children"].insert(0, project_item)
                     # Обновляем индекс для будущих итераций
@@ -1144,8 +1161,72 @@ def serve_project_file(filename):
         filename: Путь к файлу относительно папки projects/
     
     Returns:
-        Response: Файл проекта (html, css, js, images, etc.)
+        Response: Файл проекта (html, css, js, images, etc.) или ответ от Flask приложения проекта
     """
+    # Разбиваем filename на project_name и остальной путь
+    parts = filename.split('/', 1)
+    if len(parts) < 2:
+        # Если запрошен корень проекта, возвращаем index.html
+        project_name = parts[0]
+        remaining_path = 'index.html'
+    else:
+        project_name, remaining_path = parts
+    
+    # Проверяем, есть ли у этого проекта Flask приложение
+    if project_name in project_flask_info:
+        project_path = os.path.join(PROJECTS_DIR, project_name)
+        file_path = os.path.join(project_path, remaining_path)
+        
+        # Если файл существует, отдаём его напрямую
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            return send_from_directory(project_path, remaining_path, max_age=86400)
+        
+        # Если файла нет, но есть Flask приложение - пробуем обработать через него
+        flask_info = project_flask_info[project_name]
+        if not flask_info.get('loaded') and flask_info.get('app_path'):
+            # Загружаем Flask приложение при первом запросе
+            try:
+                import importlib.util
+                spec = importlib.util.spec_from_file_location(f"{project_name}_app", flask_info['app_path'])
+                if spec and spec.loader:
+                    project_module = importlib.util.module_from_spec(spec)
+                    # Добавляем проект в sys.modules для корректной работы импортов
+                    import sys
+                    sys.modules[f"{project_name}_app"] = project_module
+                    spec.loader.exec_module(project_module)
+                    # Получаем Flask приложение из модуля (ожидаем переменную 'app')
+                    if hasattr(project_module, 'app'):
+                        flask_app = project_module.app
+                        project_flask_info[project_name]['app'] = flask_app
+                        project_flask_info[project_name]['loaded'] = True
+                        print(f"Flask приложение '{project_name}' успешно загружено")
+            except Exception as e:
+                error_msg = f"Ошибка загрузки Flask приложения '{project_name}': {e}"
+                print(error_msg)
+                project_flask_info[project_name]['error'] = error_msg
+        
+        # Если Flask приложение загружено, пробуем обработать запрос через него
+        if flask_info.get('loaded') and 'app' in flask_info:
+            flask_app = flask_info['app']
+            try:
+                # Создаём новый контекст запроса для Flask приложения проекта
+                with app.test_request_context():
+                    # Клонируем текущий запрос и передаём его во Flask приложение проекта
+                    from flask import make_response
+                    
+                    # Пробуем вызвать обработчики маршрутов Flask приложения
+                    # Для этого используем wsgi_app
+                    environ = request.environ.copy()
+                    environ['PATH_INFO'] = '/' + remaining_path
+                    environ['SCRIPT_NAME'] = f'/projects/{project_name}'
+                    
+                    response = flask_app(environ, lambda status, headers: None)
+                    if response:
+                        return response
+            except Exception as e:
+                print(f"Ошибка обработки запроса Flask приложением '{project_name}': {e}")
+    
+    # Стандартная обработка - отдаём файл напрямую из папки проекта
     return send_from_directory(PROJECTS_DIR, filename, max_age=86400)  # Кэширование на 24 часа
 
 
