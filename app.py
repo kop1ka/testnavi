@@ -1219,11 +1219,12 @@ def serve_project_file(filename=None, project_name=None):
                     if flask_info.get('is_blueprint') and hasattr(project_module, 'parad_zvezd_bp'):
                         # Это Blueprint - регистрируем его в главном приложении
                         blueprint = project_module.parad_zvezd_bp
-                        # Регистрируем Blueprint с url_prefix для проекта
+                        # Регистрируем Blueprint С url_prefix для проекта
+                        # static_url_path уже настроен внутри Blueprint и будет работать корректно
                         app.register_blueprint(blueprint, url_prefix=f'/projects/{project_name}')
                         project_flask_info[project_name]['blueprint'] = blueprint
                         project_flask_info[project_name]['loaded'] = True
-                        print(f"Blueprint '{project_name}' успешно зарегистрирован")
+                        print(f"Blueprint '{project_name}' зарегистрирован с префиксом /projects/{project_name} (статика: {blueprint.static_url_path})")
                     elif hasattr(project_module, 'app'):
                         # Это обычное Flask приложение
                         flask_app = project_module.app
@@ -1284,10 +1285,21 @@ def serve_project_file(filename=None, project_name=None):
         if os.path.exists(templates_path) and os.path.isfile(templates_path):
             return send_from_directory(os.path.join(project_path, 'templates'), remaining_path, max_age=86400)
         
-        # Для статических файлов в static/
+        # Для статических файлов в static/ (универсальный путь для всех проектов)
         static_path = os.path.join(project_path, 'static', remaining_path)
         if os.path.exists(static_path) and os.path.isfile(static_path):
             return send_from_directory(os.path.join(project_path, 'static'), remaining_path, max_age=86400)
+    
+    # Специальная обработка для статики Blueprint проектов
+    # Если запрос начинается с /projects/<project_name>/static/, перенаправляем в static папку проекта
+    if project_name in project_flask_info and project_flask_info[project_name].get('loaded'):
+        flask_info = project_flask_info[project_name]
+        if flask_info.get('blueprint') and remaining_path.startswith('static/'):
+            # Извлекаем путь к файлу относительно static папки
+            static_file_path = remaining_path[7:]  # Убираем 'static/' из начала
+            static_full_path = os.path.join(project_path, 'static', static_file_path)
+            if os.path.exists(static_full_path) and os.path.isfile(static_full_path):
+                return send_from_directory(os.path.join(project_path, 'static'), static_file_path, max_age=86400)
     
     # Файл не найден
     return jsonify({'error': f'Файл не найден: {project_name}/{remaining_path if remaining_path else ""}'}), 404
