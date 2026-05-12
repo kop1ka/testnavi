@@ -10,7 +10,7 @@
     <div class="page-container">
         <div class="container">
             <div class="header-section">
-                <a href="{{ url_for('admin_panel') }}" class="btn btn-outline">← В админ-панель</a>
+                <a href="{{ url_for('parad_zvezd.admin_panel') }}" class="btn btn-outline">← В админ-панель</a>
                 <h1 class="page-title">Управление номинациями</h1>
                 <div style="display: flex; gap: 10px;">
                     <button class="btn btn-primary" onclick="exportData()">💾 Экспорт</button>
@@ -19,17 +19,17 @@
             </div>
             <p class="page-description">Выберите номинацию для управления записями участников.</p>
             <div class="nominations-grid">
-                <a href="{{ url_for('admin_nomination', nomination_id='zvezdnyy-lider') }}" class="nomination-btn btn-orange">Звёздный лидер</a>
-                <a href="{{ url_for('admin_nomination', nomination_id='zvezdnyy-nastavnik') }}" class="nomination-btn btn-yellow">Звёздный наставник</a>
-                <a href="{{ url_for('admin_nomination', nomination_id='zvezdnyy-partner') }}" class="nomination-btn btn-lime">Звёздный партнёр</a>
-                <a href="{{ url_for('admin_nomination', nomination_id='zvezdnyy-aktiv') }}" class="nomination-btn btn-green">Звёздный актив</a>
-                <a href="{{ url_for('admin_nomination', nomination_id='zvezdnaya-stsena') }}" class="nomination-btn btn-teal">Звёздная сцена</a>
-                <a href="{{ url_for('admin_nomination', nomination_id='zvezdnaya-podderzhka') }}" class="nomination-btn btn-cyan">Звёздная поддержка</a>
-                <a href="{{ url_for('admin_nomination', nomination_id='zvezdnyy-start') }}" class="nomination-btn btn-blue">Звёздный старт</a>
-                <a href="{{ url_for('admin_nomination', nomination_id='zvezdnoe-stremlenie') }}" class="nomination-btn btn-purple">Звёздное стремление</a>
-                <a href="{{ url_for('admin_nomination', nomination_id='zvezdnoe-masterstvo') }}" class="nomination-btn btn-fuchsia">Звёздное мастерство</a>
-                <a href="{{ url_for('admin_nomination', nomination_id='zvezdnyy-intellekt') }}" class="nomination-btn btn-pink">Звёздный интеллект</a>
-                <a href="{{ url_for('admin_nomination', nomination_id='zvezdnyy-vypusknik') }}" class="nomination-btn btn-red">Звёздный выпускник</a>
+                <a href="{{ url_for('parad_zvezd.admin_nomination'), nomination_id='zvezdnyy-lider') }}" class="nomination-btn btn-orange">Звёздный лидер</a>
+                <a href="{{ url_for('parad_zvezd.admin_nomination'), nomination_id='zvezdnyy-nastavnik') }}" class="nomination-btn btn-yellow">Звёздный наставник</a>
+                <a href="{{ url_for('parad_zvezd.admin_nomination'), nomination_id='zvezdnyy-partner') }}" class="nomination-btn btn-lime">Звёздный партнёр</a>
+                <a href="{{ url_for('parad_zvezd.admin_nomination'), nomination_id='zvezdnyy-aktiv') }}" class="nomination-btn btn-green">Звёздный актив</a>
+                <a href="{{ url_for('parad_zvezd.admin_nomination'), nomination_id='zvezdnaya-stsena') }}" class="nomination-btn btn-teal">Звёздная сцена</a>
+                <a href="{{ url_for('parad_zvezd.admin_nomination'), nomination_id='zvezdnaya-podderzhka') }}" class="nomination-btn btn-cyan">Звёздная поддержка</a>
+                <a href="{{ url_for('parad_zvezd.admin_nomination'), nomination_id='zvezdnyy-start') }}" class="nomination-btn btn-blue">Звёздный старт</a>
+                <a href="{{ url_for('parad_zvezd.admin_nomination'), nomination_id='zvezdnoe-stremlenie') }}" class="nomination-btn btn-purple">Звёздное стремление</a>
+                <a href="{{ url_for('parad_zvezd.admin_nomination'), nomination_id='zvezdnoe-masterstvo') }}" class="nomination-btn btn-fuchsia">Звёздное мастерство</a>
+                <a href="{{ url_for('parad_zvezd.admin_nomination'), nomination_id='zvezdnyy-intellekt') }}" class="nomination-btn btn-pink">Звёздный интеллект</a>
+                <a href="{{ url_for('parad_zvezd.admin_nomination'), nomination_id='zvezdnyy-vypusknik') }}" class="nomination-btn btn-red">Звёздный выпускник</a>
             </div>
         </div>
     </div>

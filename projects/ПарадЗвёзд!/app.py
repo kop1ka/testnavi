@@ -45,12 +45,14 @@ def create_blueprint():
         Blueprint: Настроенный Blueprint проекта
     """
     # Создаём Blueprint для проекта "ПарадЗвёзд"
-    # url_prefix не указываем здесь - он будет установлен при регистрации в главном приложении
+    # url_prefix будет установлен при регистрации в главном приложении
+    # static_url_path НЕ указываем - Flask автоматически добавит префикс при регистрации
     parad_zvezd_bp = Blueprint(
         'parad_zvezd', 
         __name__, 
         template_folder='templates',
         static_folder='static'
+        # static_url_path не указываем - будет автоматически '/projects/ПарадЗвёзд!/static'
     )
     
     # Инициализируем БД при создании Blueprint
