@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Парад Звёзд - Номинация</title>
-    <link rel="stylesheet" href="../static/styles.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <div class="page-container">
         <div class="container">
             <div class="header-section">
-                <a href="nominations-public.html" class="btn btn-outline">← Назад к номинациям</a>
+                <a href="{{ url_for('nominations_public') }}" class="btn btn-outline">← Назад к номинациям</a>
                 <h1 class="page-title" id="nominationTitle">Номинация</h1>
             </div>
             <div id="entriesList">
@@ -19,8 +19,7 @@
         </div>
     </div>
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const nominationId = urlParams.get('nom_id');
+        const nominationId = '{{ nomination_id }}';
         const nominationNames = {
             'zvezdnyy-lider': 'Звёздный лидер',
             'zvezdnyy-nastavnik': 'Звёздный наставник',
@@ -37,7 +36,7 @@
         document.getElementById('nominationTitle').textContent = nominationNames[nominationId] || 'Номинация';
 
         async function loadEntries() {
-            const res = await fetch(`../api/nomination/${nominationId}`);
+            const res = await fetch(`/api/nomination/${nominationId}`);
             const entries = await res.json();
             const container = document.getElementById('entriesList');
             const emptyState = document.getElementById('emptyState');
