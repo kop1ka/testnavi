@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Парад Звёзд - Номинация</title>
-    <link rel="stylesheet" href="../static/styles.css">
+    <link rel="stylesheet" href="/projects/ПарадЗвёзд!/static/styles.css">
 </head>
 <body>
     <div class="page-container">
@@ -36,7 +36,7 @@
         document.getElementById('nominationTitle').textContent = nominationNames[nominationId] || 'Номинация';
 
         async function loadEntries() {
-            const res = await fetch(`../api/nomination/${nominationId}`);
+            const res = await fetch(`/projects/ПарадЗвёзд!/api/nomination/${nominationId}`);
             const entries = await res.json();
             const container = document.getElementById('entriesList');
             const emptyState = document.getElementById('emptyState');
