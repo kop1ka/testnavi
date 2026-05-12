@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Парад Звёзд - Главная</title>
-    <link rel="stylesheet" href="../static/styles.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
 </head>
 <body>
     <div class="page-container">
@@ -25,7 +25,7 @@
                 </div>
                 <div class="cta-section">
                     <p class="cta-text">Нажмите кнопку, чтобы увидеть полный список номинаций</p>
-                    <a href="templates/nominations-public.html" class="btn btn-primary">Номинации</a>
+                    <a href="{{ url_for('nominations_public') }}" class="btn btn-primary">Номинации</a>
                 </div>
             </div>
         </section>
