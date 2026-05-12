@@ -10,7 +10,7 @@
     <div class="page-container">
         <div class="container">
             <div class="header-section">
-                <a href="nominations-public.html" class="btn btn-outline">← Назад к номинациям</a>
+                <a href="../nominations" class="btn btn-outline">← Назад к номинациям</a>
                 <h1 class="page-title" id="nominationTitle">Номинация</h1>
             </div>
             <div id="entriesList">
@@ -19,8 +19,10 @@
         </div>
     </div>
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const nominationId = urlParams.get('nom_id');
+        // Получаем nomination_id из URL пути (например, /projects/ПарадЗвёзд!/nomination/zvezdnyy-lider)
+        const pathParts = window.location.pathname.split('/');
+        const nominationId = pathParts[pathParts.length - 1];
+        
         const nominationNames = {
             'zvezdnyy-lider': 'Звёздный лидер',
             'zvezdnyy-nastavnik': 'Звёздный наставник',

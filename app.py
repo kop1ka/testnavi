@@ -1213,7 +1213,83 @@ def serve_project_file(filename):
     return send_from_directory(PROJECTS_DIR, decoded_filename, max_age=86400)
 
 
-# Маршруты для проекта ПарадЗвёзд! - API endpoints
+# Маршруты для проекта ПарадЗвёзд! - API endpoints и маршруты
+# Эти маршруты позволяют проекту работать через главный Flask-сервер
+
+@app.route('/projects/<project_name>/')
+def project_index(project_name):
+    """Главная страница проекта"""
+    if project_name == 'ПарадЗвёзд!':
+        return serve_project_file(f"{project_name}/index.html")
+    return jsonify({'error': 'Проект не найден'}), 404
+
+
+@app.route('/projects/<project_name>/nominations')
+def project_nominations_public(project_name):
+    """Страница номинаций проекта"""
+    if project_name == 'ПарадЗвёзд!':
+        return serve_project_file(f"{project_name}/templates/nominations-public.html")
+    return jsonify({'error': 'Проект не найден'}), 404
+
+
+@app.route('/projects/<project_name>/nomination/<nomination_id>')
+def project_nomination_public(project_name, nomination_id):
+    """Страница конкретной номинации"""
+    if project_name == 'ПарадЗвёзд!':
+        return serve_project_file(f"{project_name}/templates/nomination-public.html")
+    return jsonify({'error': 'Проект не найден'}), 404
+
+
+@app.route('/projects/<project_name>/scenarios')
+def project_scenarios_public(project_name):
+    """Страница сценариев"""
+    if project_name == 'ПарадЗвёзд!':
+        return serve_project_file(f"{project_name}/templates/scenarios-public.html")
+    return jsonify({'error': 'Проект не найден'}), 404
+
+
+@app.route('/projects/<project_name>/admin/login', methods=['GET', 'POST'])
+def project_admin_login(project_name):
+    """Страница входа администратора"""
+    if project_name == 'ПарадЗвёзд!':
+        if request.method == 'POST':
+            return api_admin_login(project_name)
+        return serve_project_file(f"{project_name}/templates/login.html")
+    return jsonify({'error': 'Проект не найден'}), 404
+
+
+@app.route('/projects/<project_name>/admin/')
+def project_admin_panel(project_name):
+    """Панель администратора"""
+    if project_name == 'ПарадЗвёзд!' and session.get(f'{project_name}_admin'):
+        return serve_project_file(f"{project_name}/templates/admin-panel.html")
+    return redirect(url_for('project_admin_login', project_name=project_name))
+
+
+@app.route('/projects/<project_name>/admin/nominations')
+def project_admin_nominations(project_name):
+    """Администрирование номинаций"""
+    if project_name == 'ПарадЗвёзд!' and session.get(f'{project_name}_admin'):
+        return serve_project_file(f"{project_name}/templates/admin-nominations.html")
+    return redirect(url_for('project_admin_login', project_name=project_name))
+
+
+@app.route('/projects/<project_name>/admin/nomination/<nomination_id>')
+def project_admin_nomination(project_name, nomination_id):
+    """Администрирование конкретной номинации"""
+    if project_name == 'ПарадЗвёзд!' and session.get(f'{project_name}_admin'):
+        return serve_project_file(f"{project_name}/templates/admin-nomination.html")
+    return redirect(url_for('project_admin_login', project_name=project_name))
+
+
+@app.route('/projects/<project_name>/admin/scenarios')
+def project_admin_scenarios(project_name):
+    """Администрирование сценариев"""
+    if project_name == 'ПарадЗвёзд!' and session.get(f'{project_name}_admin'):
+        return serve_project_file(f"{project_name}/templates/admin-scenarios.html")
+    return redirect(url_for('project_admin_login', project_name=project_name))
+
+
 @app.route('/projects/<project_name>/api/nomination/<nomination_id>')
 def api_nomination(project_name, nomination_id):
     """API endpoint для получения записей номинации"""
