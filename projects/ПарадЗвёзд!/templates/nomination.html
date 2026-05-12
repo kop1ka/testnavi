@@ -1,0 +1,71 @@
+<!-- nomination.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Парад Звёзд - Номинация</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <div class="page-container">
+        <div class="container">
+            <div class="header-section">
+                <a href="nominations.html" class="btn btn-outline">← Назад к номинациям</a>
+                <h1 class="page-title" id="nominationTitle">Номинация</h1>
+                <button class="btn btn-success" onclick="showAddForm()">
+                    <span class="icon">+</span> Добавить
+                </button>
+            </div>
+
+            <!-- Форма добавления/редактирования -->
+            <div id="formCard" class="form-card" style="display: none;">
+                <div class="card-header">
+                    <h2 id="formTitle">Добавить новую запись</h2>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="photoInput">Фотография</label>
+                        <div style="margin-bottom: 10px;">
+                            <button type="button" class="btn btn-primary" onclick="openServerFolder()" style="width: 100%; margin-bottom: 10px;">
+                                📂 Открыть папку на сервере
+                            </button>
+                        </div>
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <input type="text" id="photoUrlInput" placeholder="Вставьте ссылку на изображение с сервера..." style="flex: 1;">
+                            <button type="button" class="btn btn-primary" onclick="loadPhotoFromUrl()">Загрузить</button>
+                        </div>
+                        <p class="file-hint" style="color: #6b7280; font-size: 14px; margin-top: 5px;">
+                            1. Нажмите "Открыть папку на сервере"<br>
+                            2. Найдите нужное изображение и скопируйте ссылку на него<br>
+                            3. Вставьте ссылку в поле выше и нажмите "Загрузить"
+                        </p>
+                        <div id="photoPreview" style="display: none; margin-top: 10px;">
+                            <img id="previewImg" src="" alt="Предпросмотр" style="max-width: 100%; max-height: 200px; border-radius: 8px;">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="descriptionInput">Описание</label>
+                        <textarea id="descriptionInput" rows="4" placeholder="Введите описание..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-primary" onclick="saveEntry()">
+                            <span id="saveButtonText">Добавить</span>
+                        </button>
+                        <button class="btn btn-outline" onclick="cancelForm()">Отмена</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Список записей -->
+            <div id="entriesList">
+                <div class="empty-state" id="emptyState">
+                    <p>Записей пока нет. Нажмите "Добавить" для создания новой записи.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="nomination.js"></script>
+</body>
+</html>

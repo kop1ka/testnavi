@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Парад Звёзд - Сценарии</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="page-container">
+        <div class="container">
+            <div class="header-section">
+                <a href="nominations.html" class="btn btn-outline">← Назад к номинациям</a>
+                <h1 class="page-title">Сценарии мероприятий</h1>
+                <button class="btn btn-success" onclick="showAddScenarioForm()">
+                    <span class="icon">+</span> Добавить сценарий
+                </button>
+            </div>
+
+            <p class="page-description">Каждый год для мероприятий создаются уникальные сценарии. Вы можете ознакомиться с ними ниже, нажав на иконку.</p>
+
+            <!-- Форма добавления сценария -->
+            <div id="scenarioFormCard" class="form-card" style="display: none;">
+                <div class="card-header">
+                    <h2>Добавить сценарий</h2>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="scenarioName">Название сценария</label>
+                        <input type="text" id="scenarioName" placeholder="Введите название сценария...">
+                    </div>
+                    <div class="form-group">
+                        <label for="scenarioFile">Файл сценария</label>
+                        <div style="margin-bottom: 10px;">
+                            <button type="button" class="btn btn-primary" onclick="openServerFolder()" style="width: 100%; margin-bottom: 10px;">
+                                📂 Открыть папку на сервере
+                            </button>
+                        </div>
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <input type="text" id="scenarioUrlInput" placeholder="Вставьте ссылку на файл с сервера..." style="flex: 1;">
+                            <button type="button" class="btn btn-primary" onclick="loadScenarioFromUrl()">Загрузить</button>
+                        </div>
+                        <p class="file-hint">Поддерживаемые форматы: PDF, DOC, DOCX, TXT</p>
+                        <p class="file-hint" style="color: #6b7280; font-size: 14px; margin-top: 5px;">
+                            1. Нажмите "Открыть папку на сервере"<br>
+                            2. Найдите нужный файл, кликните правой кнопкой и выберите "Копировать адрес ссылки"<br>
+                            3. Вставьте ссылку в поле выше и нажмите "Загрузить"
+                        </p>
+                        <div id="filePreview" style="display: none; margin-top: 10px;">
+                            <p class="file-info">
+                                <strong>Выбран файл:</strong> <span id="fileName"></span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-primary" onclick="saveScenario()">Добавить</button>
+                        <button class="btn btn-outline" onclick="cancelScenarioForm()">Отмена</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Список сценариев -->
+            <div id="scenariosList">
+                <div class="empty-state" id="emptyState">
+                    <p>Сценариев пока нет. Нажмите "Добавить сценарий" для создания новой записи.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для просмотра сценария -->
+    <div id="scenarioModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Сценарий</h2>
+                <button class="modal-close" onclick="closeScenarioModal()">×</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Здесь будет отображаться содержимое сценария -->
+            </div>
+        </div>
+    </div>
+
+    <script src="scenarios.js"></script>
+</body>
+</html>
