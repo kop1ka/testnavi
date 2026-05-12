@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Управление сценариями - Админ</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="../static/styles.css">
 </head>
 <body>
     <div class="page-container">
         <div class="container">
             <div class="header-section">
-                <a href="{{ url_for('parad_zvezd.admin_panel') }}" class="btn btn-outline">← В админ-панель</a>
+                <a href="admin" class="btn btn-outline">← В админ-панель</a>
                 <h1 class="page-title">Сценарии мероприятий</h1>
                 <button class="btn btn-success" onclick="showAddForm()">+ Добавить сценарий</button>
             </div>
@@ -34,7 +34,7 @@
         let currentFileData = '', currentFileName = '';
 
         async function loadScenarios() {
-            const res = await fetch('/api/admin/scenarios');
+            const res = await fetch('../api/admin/scenarios');
             const scenarios = await res.json();
             const container = document.getElementById('scenariosList');
             const emptyState = document.getElementById('emptyState');
@@ -79,7 +79,7 @@
         async function saveScenario() {
             const name = document.getElementById('scenarioName').value.trim();
             if (!name || !currentFileData) { alert('Заполните все поля'); return; }
-            const res = await fetch('/api/admin/scenarios', {
+            const res = await fetch('../api/admin/scenarios', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, fileData: currentFileData, fileName: currentFileName })
@@ -90,13 +90,13 @@
 
         async function deleteScenario(id) {
             if (!confirm('Удалить сценарий?')) return;
-            const res = await fetch(`/api/admin/scenarios?id=${id}`, { method: 'DELETE' });
+            const res = await fetch(`../api/admin/scenarios?id=${id}`, { method: 'DELETE' });
             if (res.ok) loadScenarios();
             else alert('Ошибка удаления');
         }
 
-        function viewScenario(id) {  // просто открываем в новой вкладке (можно улучшить)
-            fetch('/api/admin/scenarios').then(r=>r.json()).then(scenarios=>{
+        function viewScenario(id) {
+            fetch('../api/admin/scenarios').then(r=>r.json()).then(scenarios=>{
                 const s = scenarios.find(s=>s.id===id);
                 if(s) window.open(s.fileData, '_blank');
             });
