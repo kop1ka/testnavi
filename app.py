@@ -756,7 +756,8 @@ def get_catalog():
                     project_flask_info[project_name] = {
                         'app_path': flask_app_path,
                         'loaded': False,
-                        'error': None
+                        'error': None,
+                        'is_blueprint': True  # Флаг для Blueprint проектов
                     }
                 
                 # Проверяем, есть ли уже этот проект в каталоге
@@ -1213,8 +1214,18 @@ def serve_project_file(filename=None, project_name=None):
                     # Добавляем проект в sys.modules для корректной работы импортов
                     sys.modules[f"{project_name}_app"] = project_module
                     spec.loader.exec_module(project_module)
-                    # Получаем Flask приложение из модуля (ожидаем переменную 'app')
-                    if hasattr(project_module, 'app'):
+                    
+                    # Проверяем, является ли проект Blueprint
+                    if flask_info.get('is_blueprint') and hasattr(project_module, 'parad_zvezd_bp'):
+                        # Это Blueprint - регистрируем его в главном приложении
+                        blueprint = project_module.parad_zvezd_bp
+                        # Регистрируем Blueprint с url_prefix для проекта
+                        app.register_blueprint(blueprint, url_prefix=f'/projects/{project_name}')
+                        project_flask_info[project_name]['blueprint'] = blueprint
+                        project_flask_info[project_name]['loaded'] = True
+                        print(f"Blueprint '{project_name}' успешно зарегистрирован")
+                    elif hasattr(project_module, 'app'):
+                        # Это обычное Flask приложение
                         flask_app = project_module.app
                         project_flask_info[project_name]['app'] = flask_app
                         project_flask_info[project_name]['loaded'] = True
@@ -1229,8 +1240,9 @@ def serve_project_file(filename=None, project_name=None):
                 # и отдавать статические файлы напрямую
                 pass
         
+        # Если Blueprint загружен, он уже зарегистрирован и будет обрабатывать запросы автоматически
         # Если Flask приложение загружено, пробуем обработать запрос через него
-        if flask_info.get('loaded') and 'app' in flask_info:
+        if flask_info.get('loaded') and 'app' in flask_info and not flask_info.get('is_blueprint'):
             flask_app = flask_info['app']
             try:
                 # Клонируем текущий запрос и передаём его во Flask приложение проекта
