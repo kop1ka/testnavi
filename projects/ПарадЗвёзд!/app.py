@@ -3,12 +3,17 @@ import hashlib
 from functools import wraps
 from datetime import datetime
 
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_file
+from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for, send_file
 import pymysql
 from pymysql.cursors import DictCursor
 
-app = Flask(__name__)
-app.secret_key = 'supersecretkeychangeme'  # В продакшене сменить!
+# Создаём Blueprint для проекта "ПарадЗвёзд"
+parad_zvezd_bp = Blueprint('parad_zvezd', __name__, 
+                           template_folder='templates',
+                           static_folder='static',
+                           url_prefix='/parad-zvezd')
+
+app = parad_zvezd_bp  # Для совместимости со старым кодом
 
 # ------------------- Конфигурация БД -------------------
 DB_CONFIG = {
@@ -90,8 +95,8 @@ def init_db():
         conn.close()
 
 
-# Вызов инициализации при старте
-init_db()
+# Инициализация БД будет вызвана при регистрации Blueprint, а не при импорте
+# init_db()  # Удалено - вызывается внутри create_app() или при первом запросе
 
 
 # ------------------- Декоратор авторизации -------------------
@@ -390,5 +395,32 @@ def admin_import():
     except Exception as e:
         return jsonify({'error': f'Ошибка импорта: {str(e)}'}), 400
 
+
+def create_app(secret_key='supersecretkeychangeme'):
+    """
+    Фабрика приложений для регистрации Blueprint в главном приложении
+    
+    Args:
+        secret_key: Секретный ключ для сессий
+        
+    Returns:
+        Blueprint: Настроенный Blueprint проекта ПарадЗвёзд
+    """
+    # Инициализируем БД при создании приложения
+    try:
+        init_db()
+    except Exception as e:
+        print(f"Warning: Could not initialize database: {e}")
+    
+    # Устанавливаем секретный ключ через конфигурацию parent приложения
+    parad_zvezd_bp.app = lambda: None  # Заглушка для совместимости
+    parad_zvezd_bp.secret_key = secret_key
+    return parad_zvezd_bp
+
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    from flask import Flask
+    temp_app = Flask(__name__)
+    temp_app.secret_key = 'supersecretkeychangeme'
+    temp_app.register_blueprint(parad_zvezd_bp)
+    temp_app.run(host='0.0.0.0', port=5000, debug=True)
