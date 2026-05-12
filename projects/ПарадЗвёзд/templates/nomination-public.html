@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Парад Звёзд - Номинация</title>
+    <link rel="stylesheet" href="/projects/ПарадЗвёзд!/static/styles.css">
+</head>
+<body>
+    <div class="page-container">
+        <div class="container">
+            <div class="header-section">
+                <a href="../nominations" class="btn btn-outline">← Назад к номинациям</a>
+                <h1 class="page-title" id="nominationTitle">Номинация</h1>
+            </div>
+            <div id="entriesList">
+                <div class="empty-state" id="emptyState"><p>Загрузка...</p></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const nominationId = window.location.pathname.split('/').pop();
+        const nominationNames = {
+            'zvezdnyy-lider': 'Звёздный лидер',
+            'zvezdnyy-nastavnik': 'Звёздный наставник',
+            'zvezdnyy-partner': 'Звёздный партнёр',
+            'zvezdnyy-aktiv': 'Звёздный актив',
+            'zvezdnaya-stsena': 'Звёздная сцена',
+            'zvezdnaya-podderzhka': 'Звёздная поддержка',
+            'zvezdnyy-start': 'Звёздный старт',
+            'zvezdnoe-stremlenie': 'Звёздное стремление',
+            'zvezdnoe-masterstvo': 'Звёздное мастерство',
+            'zvezdnyy-intellekt': 'Звёздный интеллект',
+            'zvezdnyy-vypusknik': 'Звёздный выпускник'
+        };
+        document.getElementById('nominationTitle').textContent = nominationNames[nominationId] || 'Номинация';
+
+        async function loadEntries() {
+            const res = await fetch(`/projects/ПарадЗвёзд!/api/nomination/${nominationId}`);
+            const entries = await res.json();
+            const container = document.getElementById('entriesList');
+            const emptyState = document.getElementById('emptyState');
+            if (!entries.length) {
+                emptyState.innerHTML = '<p>В этой номинации пока нет записей.</p>';
+                emptyState.style.display = 'block';
+                return;
+            }
+            emptyState.style.display = 'none';
+            container.innerHTML = '';
+            entries.forEach(entry => {
+                const card = document.createElement('div');
+                card.className = 'entry-card';
+                card.innerHTML = `
+                    <div class="entry-content">
+                        <div class="entry-photo"><img src="${escapeHtml(entry.photo)}" alt="Фото"></div>
+                        <div class="entry-details"><p class="entry-description">${escapeHtml(entry.description)}</p></div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        loadEntries();
+    </script>
+</body>
+</html>

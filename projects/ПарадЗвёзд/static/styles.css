@@ -1,0 +1,660 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Главная страница */
+.hero-section {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #fef3c7 0%, #ffffff 50%, #fed7aa 100%);
+    padding: 60px 20px;
+}
+
+.main-title {
+    font-size: 3.5rem;
+    font-weight: bold;
+    background: linear-gradient(to right, #d97706, #f97316, #dc2626);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-align: center;
+    margin-bottom: 30px;
+    line-height: 1.2;
+}
+
+.subtitle {
+    font-size: 1.5rem;
+    color: #4b5563;
+    text-align: center;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.content-section {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 60px 20px;
+}
+
+.section-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    text-align: center;
+    color: #111827;
+    margin-bottom: 40px;
+}
+
+.text-content {
+    font-size: 1.125rem;
+    color: #4b5563;
+    line-height: 1.8;
+    margin-bottom: 50px;
+}
+
+.text-content p {
+    margin-bottom: 20px;
+}
+
+.cta-section {
+    text-align: center;
+    padding-top: 30px;
+}
+
+.cta-text {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 20px;
+}
+
+/* Кнопки */
+.btn {
+    display: inline-block;
+    padding: 15px 35px;
+    font-size: 1.125rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    cursor: pointer;
+    text-align: center;
+}
+
+.btn-primary {
+    background: linear-gradient(to right, #f59e0b, #ea580c);
+    color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary:hover {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.btn-outline {
+    background: white;
+    color: #374151;
+    border: 2px solid #d1d5db;
+}
+
+.btn-outline:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+}
+
+.btn-success {
+    background: linear-gradient(to right, #10b981, #059669);
+    color: white;
+}
+
+.btn-success:hover {
+    opacity: 0.9;
+}
+
+/* Страница номинаций */
+.page-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #fef3c7 0%, #ffffff 50%, #fed7aa 100%);
+    padding: 50px 20px;
+}
+
+.header-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.spacer {
+    width: 100px;
+}
+
+.page-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    background: linear-gradient(to right, #d97706, #f97316, #dc2626);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    flex: 1;
+    text-align: center;
+}
+
+.image-container {
+    text-align: center;
+    margin: 40px 0;
+}
+
+.nominations-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.nominations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 40px;
+}
+
+.nomination-btn {
+    padding: 25px;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.nomination-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-orange { background: linear-gradient(to right, #f97316, #ea580c); }
+.btn-yellow { background: linear-gradient(to right, #eab308, #ca8a04); }
+.btn-lime { background: linear-gradient(to right, #84cc16, #65a30d); }
+.btn-green { background: linear-gradient(to right, #22c55e, #16a34a); }
+.btn-teal { background: linear-gradient(to right, #14b8a6, #0d9488); }
+.btn-cyan { background: linear-gradient(to right, #06b6d4, #0891b2); }
+.btn-blue { background: linear-gradient(to right, #3b82f6, #2563eb); }
+.btn-purple { background: linear-gradient(to right, #a855f7, #9333ea); }
+.btn-fuchsia { background: linear-gradient(to right, #d946ef, #c026d3); }
+.btn-pink { background: linear-gradient(to right, #ec4899, #db2777); }
+.btn-red { background: linear-gradient(to right, #ef4444, #dc2626); }
+
+/* Форма */
+.form-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border: 2px solid #fbbf24;
+    margin-bottom: 40px;
+}
+
+.card-header {
+    padding: 25px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.card-header h2 {
+    font-size: 1.75rem;
+    color: #111827;
+}
+
+.card-body {
+    padding: 25px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.form-group input[type="file"],
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #fbbf24;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+}
+
+.form-group input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #fbbf24;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+}
+
+.form-group textarea {
+    resize: vertical;
+}
+
+.file-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.upload-icon {
+    font-size: 1.5rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.form-actions .btn {
+    flex: 1;
+}
+
+/* Записи */
+.empty-state {
+    background: white;
+    padding: 60px 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.empty-state p {
+    font-size: 1.25rem;
+    color: #6b7280;
+}
+
+.entry-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 25px;
+    padding: 25px;
+    transition: box-shadow 0.3s ease;
+}
+
+.entry-card:hover {
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+.entry-content {
+    display: flex;
+    gap: 25px;
+    flex-wrap: wrap;
+}
+
+.entry-photo {
+    flex: 0 0 300px;
+}
+
+.entry-photo img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.entry-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.entry-description {
+    color: #4b5563;
+    font-size: 1.125rem;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    margin-bottom: 20px;
+}
+
+.entry-actions {
+    display: flex;
+    gap: 15px;
+}
+
+.entry-actions .btn {
+    flex: 1;
+    padding: 12px 20px;
+    font-size: 1rem;
+}
+
+.btn-edit {
+    background: white;
+    color: #2563eb;
+    border: 2px solid #93c5fd;
+}
+
+.btn-edit:hover {
+    background: #eff6ff;
+}
+
+.btn-delete {
+    background: white;
+    color: #dc2626;
+    border: 2px solid #fca5a5;
+}
+
+.btn-delete:hover {
+    background: #fef2f2;
+}
+
+.icon {
+    display: inline-block;
+    margin-right: 5px;
+}
+
+/* Секция сценариев на странице номинаций */
+.scenarios-section {
+    text-align: center;
+    margin-top: 60px;
+    padding: 40px 20px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 12px;
+}
+
+.scenarios-text {
+    font-size: 1.25rem;
+    color: #374151;
+    margin-bottom: 25px;
+    font-weight: 500;
+}
+
+/* Страница сценариев */
+.page-description {
+    text-align: center;
+    font-size: 1.125rem;
+    color: #4b5563;
+    margin-bottom: 40px;
+    padding: 0 20px;
+}
+
+.file-hint {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-top: 5px;
+}
+
+.file-info {
+    background: #f3f4f6;
+    padding: 10px 15px;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    color: #374151;
+}
+
+/* Карточки сценариев */
+.scenario-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 25px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.3s ease;
+}
+
+.scenario-card:hover {
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.scenario-icon {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex: 1;
+    cursor: pointer;
+}
+
+.icon-circle {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);
+    transition: transform 0.3s ease;
+}
+
+.scenario-icon:hover .icon-circle {
+    transform: scale(1.1);
+}
+
+.file-icon {
+    font-size: 2.5rem;
+}
+
+.scenario-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.scenario-date {
+    font-size: 0.95rem;
+    color: #6b7280;
+    margin: 5px 0 0 0;
+}
+
+.scenario-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-icon {
+    width: 45px;
+    height: 45px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.btn-view {
+    border: 2px solid #93c5fd;
+}
+
+.btn-view:hover {
+    background: #eff6ff;
+    transform: scale(1.1);
+}
+
+.btn-delete {
+    border: 2px solid #fca5a5;
+}
+
+.btn-delete:hover {
+    background: #fef2f2;
+    transform: scale(1.1);
+}
+
+/* Модальное окно */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 900px;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 30px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.modal-header h2 {
+    font-size: 1.75rem;
+    color: #111827;
+    margin: 0;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 2.5rem;
+    color: #6b7280;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+    background: #f3f4f6;
+    color: #111827;
+}
+
+.modal-body {
+    padding: 30px;
+    max-height: calc(90vh - 100px);
+    overflow-y: auto;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .main-title {
+        font-size: 2rem;
+    }
+    
+    .subtitle {
+        font-size: 1.125rem;
+    }
+    
+    .section-title {
+        font-size: 1.75rem;
+    }
+    
+    .page-title {
+        font-size: 1.75rem;
+    }
+    
+    .header-section {
+        flex-direction: column;
+    }
+    
+    .spacer {
+        display: none;
+    }
+    
+    .nominations-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .entry-content {
+        flex-direction: column;
+    }
+    
+    .entry-photo {
+        flex: 0 0 auto;
+        width: 100%;
+    }
+}
+.form-group input[type="text"],
+.form-group input[type="password"] {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 1rem;
+    font-family: inherit;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    transition: all .2s ease;
+    box-sizing: border-box;
+    outline: none;
+    color: #1f2937;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="password"]:focus {
+    border-color: #6366f1;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, .1);
+}
+
+.form-group input[type="text"]::placeholder,
+.form-group input[type="password"]::placeholder {
+    color: #9ca3af;
+    font-weight: 400;
+}
+
+@media (max-width: 480px) {
+    .container {
+        margin: 1rem;
+    }
+    .form-group input[type="text"],
+    .form-group input[type="password"] {
+        padding: 10px 14px;
+        font-size: .95rem;
+    }
+}
