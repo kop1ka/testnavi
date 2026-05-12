@@ -740,7 +740,12 @@ def get_catalog():
                         break
                 
                 if index_html_path is None:
-                    continue
+                    # Если нет index.html, но есть app.py (Flask проект), всё равно добавляем проект
+                    flask_app_path = os.path.join(project_path, 'app.py')
+                    if not os.path.exists(flask_app_path):
+                        continue
+                    # Используем app.py для определения времени модификации
+                    index_html_path = flask_app_path
                 
                 # Проверяем, есть ли Flask приложение в проекте
                 flask_app_path = os.path.join(project_path, 'app.py')
@@ -1153,46 +1158,59 @@ def serve_js(filename):
 
 
 @app.route('/projects/<path:filename>')
-def serve_project_file(filename):
+@app.route('/projects/<project_name>')
+@app.route('/projects/<project_name>/')
+def serve_project_file(filename=None, project_name=None):
     """
     API endpoint для раздачи файлов проектов из папки projects/
     
     Args:
-        filename: Путь к файлу относительно папки projects/
+        filename: Путь к файлу относительно папки projects/ (если указан)
+        project_name: Имя проекта (если запрошен корень проекта)
     
     Returns:
         Response: Файл проекта (html, css, js, images, etc.) или ответ от Flask приложения проекта
     """
-    # Разбиваем filename на project_name и остальной путь
-    parts = filename.split('/', 1)
-    if len(parts) < 2:
-        # Если запрошен корень проекта, возвращаем index.html
-        project_name = parts[0]
-        remaining_path = 'index.html'
+    # Определяем имя проекта и оставшийся путь
+    if project_name is not None:
+        # Запрошен корень проекта /projects/<project_name> или /projects/<project_name>/
+        remaining_path = ''
+    elif filename:
+        # Запрошен конкретный файл /projects/<project_name>/<path>
+        parts = filename.split('/', 1)
+        if len(parts) < 2:
+            project_name = parts[0]
+            remaining_path = 'index.html'
+        else:
+            project_name, remaining_path = parts
     else:
-        project_name, remaining_path = parts
+        return jsonify({'error': 'Некорректный запрос'}), 400
     
     project_path = os.path.join(PROJECTS_DIR, project_name)
     
+    # Проверяем существование проекта
+    if not os.path.exists(project_path) or not os.path.isdir(project_path):
+        return jsonify({'error': f'Проект не найден: {project_name}'}), 404
+    
     # Проверяем, есть ли у этого проекта Flask приложение
     if project_name in project_flask_info:
-        file_path = os.path.join(project_path, remaining_path)
-        
-        # Если файл существует, отдаём его напрямую
-        if os.path.exists(file_path) and os.path.isfile(file_path):
-            return send_from_directory(project_path, remaining_path, max_age=86400)
-        
-        # Если файла нет, но есть Flask приложение - пробуем обработать через него
         flask_info = project_flask_info[project_name]
+        
+        # Загружаем Flask приложение при первом запросе, если ещё не загружено
         if not flask_info.get('loaded') and flask_info.get('app_path'):
-            # Загружаем Flask приложение при первом запросе
             try:
                 import importlib.util
+                import sys
+                
+                # Добавляем директорию проекта в sys.path для корректных импортов
+                project_dir = os.path.dirname(flask_info['app_path'])
+                if project_dir not in sys.path:
+                    sys.path.insert(0, project_dir)
+                
                 spec = importlib.util.spec_from_file_location(f"{project_name}_app", flask_info['app_path'])
                 if spec and spec.loader:
                     project_module = importlib.util.module_from_spec(spec)
                     # Добавляем проект в sys.modules для корректной работы импортов
-                    import sys
                     sys.modules[f"{project_name}_app"] = project_module
                     spec.loader.exec_module(project_module)
                     # Получаем Flask приложение из модуля (ожидаем переменную 'app')
@@ -1204,47 +1222,63 @@ def serve_project_file(filename):
             except Exception as e:
                 error_msg = f"Ошибка загрузки Flask приложения '{project_name}': {e}"
                 print(error_msg)
+                import traceback
+                traceback.print_exc()
                 project_flask_info[project_name]['error'] = error_msg
+                # Если ошибка связана с БД или другими зависимостями, пробуем продолжить без загрузки Flask приложения
+                # и отдавать статические файлы напрямую
+                pass
         
         # Если Flask приложение загружено, пробуем обработать запрос через него
         if flask_info.get('loaded') and 'app' in flask_info:
             flask_app = flask_info['app']
             try:
-                # Создаём новый контекст запроса для Flask приложения проекта
-                with app.test_request_context():
-                    # Клонируем текущий запрос и передаём его во Flask приложение проекта
-                    from flask import make_response
-                    
-                    # Пробуем вызвать обработчики маршрутов Flask приложения
-                    # Для этого используем wsgi_app
-                    environ = request.environ.copy()
+                # Клонируем текущий запрос и передаём его во Flask приложение проекта
+                environ = request.environ.copy()
+                # Устанавливаем PATH_INFO для маршрута проекта
+                # Для корня проекта устанавливаем '/', иначе путь к файлу
+                if remaining_path == '' or remaining_path == 'index.html':
+                    environ['PATH_INFO'] = '/'
+                else:
                     environ['PATH_INFO'] = '/' + remaining_path
-                    environ['SCRIPT_NAME'] = f'/projects/{project_name}'
-                    
-                    response = flask_app(environ, lambda status, headers: None)
-                    if response:
-                        return response
+                environ['SCRIPT_NAME'] = f'/projects/{project_name}'
+                
+                # Создаём WSGI response iterator
+                response_iter = flask_app(environ, lambda status, headers: None)
+                
+                # Если получили ответ, возвращаем его
+                if response_iter:
+                    # Конвертируем итератор в Response объект если нужно
+                    from flask import Response
+                    if isinstance(response_iter, Response):
+                        return response_iter
+                    # Если это итератор, читаем содержимое
+                    body = b''.join(response_iter)
+                    return Response(body, status='200 OK', content_type='text/html; charset=utf-8')
             except Exception as e:
                 print(f"Ошибка обработки запроса Flask приложением '{project_name}': {e}")
+                import traceback
+                traceback.print_exc()
     
     # Стандартная обработка - пробуем найти файл в нескольких возможных местах
     # Сначала проверяем прямой путь
-    file_path = os.path.join(project_path, remaining_path)
-    if os.path.exists(file_path) and os.path.isfile(file_path):
-        return send_from_directory(project_path, remaining_path, max_age=86400)
-    
-    # Для проектов с шаблонами в templates/ (например, Flask проекты без загрузки)
-    templates_path = os.path.join(project_path, 'templates', remaining_path)
-    if os.path.exists(templates_path) and os.path.isfile(templates_path):
-        return send_from_directory(os.path.join(project_path, 'templates'), remaining_path, max_age=86400)
-    
-    # Для статических файлов в static/
-    static_path = os.path.join(project_path, 'static', remaining_path)
-    if os.path.exists(static_path) and os.path.isfile(static_path):
-        return send_from_directory(os.path.join(project_path, 'static'), remaining_path, max_age=86400)
+    if remaining_path:
+        file_path = os.path.join(project_path, remaining_path)
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            return send_from_directory(project_path, remaining_path, max_age=86400)
+        
+        # Для проектов с шаблонами в templates/ (например, Flask проекты без загрузки)
+        templates_path = os.path.join(project_path, 'templates', remaining_path)
+        if os.path.exists(templates_path) and os.path.isfile(templates_path):
+            return send_from_directory(os.path.join(project_path, 'templates'), remaining_path, max_age=86400)
+        
+        # Для статических файлов в static/
+        static_path = os.path.join(project_path, 'static', remaining_path)
+        if os.path.exists(static_path) and os.path.isfile(static_path):
+            return send_from_directory(os.path.join(project_path, 'static'), remaining_path, max_age=86400)
     
     # Файл не найден
-    return jsonify({'error': f'Файл не найден: {filename}'}), 404
+    return jsonify({'error': f'Файл не найден: {project_name}/{remaining_path if remaining_path else ""}'}), 404
 
 
 @app.route('/api/proxy-image')
