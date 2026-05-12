@@ -1,16 +1,24 @@
 import os
 import hashlib
-import sqlite3
 from functools import wraps
 from datetime import datetime
 
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_file
+import pymysql
+from pymysql.cursors import DictCursor
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkeychangeme'  # В продакшене сменить!
 
-# ------------------- Конфигурация БД (SQLite) -------------------
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'parad_zvezd.db')
+# ------------------- Конфигурация БД -------------------
+DB_CONFIG = {
+    'host': 'localhost',
+    'user': 'root',          # замените на вашего пользователя MySQL
+    'password': '',          # замените на пароль
+    'database': 'parad_zvezd',
+    'charset': 'utf8mb4',
+    'cursorclass': DictCursor
+}
 
 # Данные для входа администратора
 ADMIN_USERNAME = 'admin'
@@ -35,51 +43,49 @@ NOMINATIONS = {
 # ------------------- Вспомогательные функции БД -------------------
 def get_db_connection():
     """Создаёт и возвращает соединение с БД"""
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+    return pymysql.connect(**DB_CONFIG)
 
 
 def init_db():
     """Создаёт таблицы, если их нет, и заполняет номинации"""
     conn = get_db_connection()
     try:
-        cursor = conn.cursor()
-        # Таблица номинаций
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS nominations (
-                id TEXT PRIMARY KEY,
-                name TEXT NOT NULL
-            )
-        ''')
-        # Таблица записей (фото+описание)
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS entries (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                nomination_id TEXT NOT NULL,
-                photo TEXT NOT NULL,
-                description TEXT NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (nomination_id) REFERENCES nominations(id) ON DELETE CASCADE
-            )
-        ''')
-        # Таблица сценариев
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS scenarios (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                file_name TEXT NOT NULL,
-                file_data TEXT NOT NULL,
-                created_at TEXT NOT NULL
-            )
-        ''')
+        with conn.cursor() as cursor:
+            # Таблица номинаций
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS nominations (
+                    id VARCHAR(50) PRIMARY KEY,
+                    name VARCHAR(100) NOT NULL
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            ''')
+            # Таблица записей (фото+описание)
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS entries (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    nomination_id VARCHAR(50) NOT NULL,
+                    photo TEXT NOT NULL,
+                    description TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (nomination_id) REFERENCES nominations(id) ON DELETE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            ''')
+            # Таблица сценариев
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS scenarios (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    name VARCHAR(200) NOT NULL,
+                    file_name VARCHAR(200) NOT NULL,
+                    file_data TEXT NOT NULL,
+                    created_at VARCHAR(20) NOT NULL
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            ''')
 
-        # Заполнение таблицы nominations, если пусто
-        cursor.execute('SELECT COUNT(*) as cnt FROM nominations')
-        if cursor.fetchone()['cnt'] == 0:
-            for nom_id, nom_name in NOMINATIONS.items():
-                cursor.execute('INSERT INTO nominations (id, name) VALUES (?, ?)', (nom_id, nom_name))
-        conn.commit()
+            # Заполнение таблицы nominations, если пусто
+            cursor.execute('SELECT COUNT(*) as cnt FROM nominations')
+            if cursor.fetchone()['cnt'] == 0:
+                for nom_id, nom_name in NOMINATIONS.items():
+                    cursor.execute('INSERT INTO nominations (id, name) VALUES (%s, %s)', (nom_id, nom_name))
+            conn.commit()
     finally:
         conn.close()
 
@@ -126,18 +132,13 @@ def scenarios_public():
 def api_get_nomination(nomination_id):
     conn = get_db_connection()
     try:
-        cursor = conn.cursor()
-        cursor.execute('SELECT id, photo, description FROM entries WHERE nomination_id = ? ORDER BY created_at', (nomination_id,))
-        entries = cursor.fetchall()
-        # Преобразуем id в строку для совместимости со старым форматом
-        result = []
-        for e in entries:
-            result.append({
-                'id': str(e['id']),
-                'photo': e['photo'],
-                'description': e['description']
-            })
-        return jsonify(result)
+        with conn.cursor() as cursor:
+            cursor.execute('SELECT id, photo, description FROM entries WHERE nomination_id = %s ORDER BY created_at', (nomination_id,))
+            entries = cursor.fetchall()
+            # Преобразуем id в строку для совместимости со старым форматом
+            for e in entries:
+                e['id'] = str(e['id'])
+            return jsonify(entries)
     finally:
         conn.close()
 
@@ -146,19 +147,12 @@ def api_get_nomination(nomination_id):
 def api_get_scenarios():
     conn = get_db_connection()
     try:
-        cursor = conn.cursor()
-        cursor.execute('SELECT id, name, file_name, file_data, created_at FROM scenarios ORDER BY created_at DESC')
-        scenarios = cursor.fetchall()
-        result = []
-        for s in scenarios:
-            result.append({
-                'id': str(s['id']),
-                'name': s['name'],
-                'file_name': s['file_name'],
-                'file_data': s['file_data'],
-                'created_at': s['created_at']
-            })
-        return jsonify(result)
+        with conn.cursor() as cursor:
+            cursor.execute('SELECT id, name, file_name, file_data, created_at FROM scenarios ORDER BY created_at DESC')
+            scenarios = cursor.fetchall()
+            for s in scenarios:
+                s['id'] = str(s['id'])
+            return jsonify(scenarios)
     finally:
         conn.close()
 
@@ -218,29 +212,25 @@ def api_admin_nomination(nomination_id):
 
     conn = get_db_connection()
     try:
-        cursor = conn.cursor()
         if request.method == 'GET':
-            cursor.execute('SELECT id, photo, description FROM entries WHERE nomination_id = ? ORDER BY created_at', (nomination_id,))
-            entries = cursor.fetchall()
-            result = []
-            for e in entries:
-                result.append({
-                    'id': str(e['id']),
-                    'photo': e['photo'],
-                    'description': e['description']
-                })
-            return jsonify(result)
+            with conn.cursor() as cursor:
+                cursor.execute('SELECT id, photo, description FROM entries WHERE nomination_id = %s ORDER BY created_at', (nomination_id,))
+                entries = cursor.fetchall()
+                for e in entries:
+                    e['id'] = str(e['id'])
+                return jsonify(entries)
 
         elif request.method == 'POST':
             data = request.json
             if not data.get('photo') or not data.get('description'):
                 return jsonify({'error': 'Фото и описание обязательны'}), 400
-            cursor.execute(
-                'INSERT INTO entries (nomination_id, photo, description) VALUES (?, ?, ?)',
-                (nomination_id, data['photo'], data['description'])
-            )
-            conn.commit()
-            new_id = cursor.lastrowid
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    'INSERT INTO entries (nomination_id, photo, description) VALUES (%s, %s, %s)',
+                    (nomination_id, data['photo'], data['description'])
+                )
+                conn.commit()
+                new_id = cursor.lastrowid
             return jsonify({'id': str(new_id), 'photo': data['photo'], 'description': data['description']}), 201
 
         elif request.method == 'PUT':
@@ -248,23 +238,25 @@ def api_admin_nomination(nomination_id):
             entry_id = data.get('id')
             if not entry_id:
                 return jsonify({'error': 'id не указан'}), 400
-            cursor.execute(
-                'UPDATE entries SET photo = ?, description = ? WHERE id = ? AND nomination_id = ?',
-                (data['photo'], data['description'], entry_id, nomination_id)
-            )
-            conn.commit()
-            if cursor.rowcount == 0:
-                return jsonify({'error': 'Запись не найдена'}), 404
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    'UPDATE entries SET photo = %s, description = %s WHERE id = %s AND nomination_id = %s',
+                    (data['photo'], data['description'], entry_id, nomination_id)
+                )
+                conn.commit()
+                if cursor.rowcount == 0:
+                    return jsonify({'error': 'Запись не найдена'}), 404
             return jsonify({'id': entry_id, 'photo': data['photo'], 'description': data['description']})
 
         elif request.method == 'DELETE':
             entry_id = request.args.get('id')
             if not entry_id:
                 return jsonify({'error': 'id не указан'}), 400
-            cursor.execute('DELETE FROM entries WHERE id = ? AND nomination_id = ?', (entry_id, nomination_id))
-            conn.commit()
-            if cursor.rowcount == 0:
-                return jsonify({'error': 'Запись не найдена'}), 404
+            with conn.cursor() as cursor:
+                cursor.execute('DELETE FROM entries WHERE id = %s AND nomination_id = %s', (entry_id, nomination_id))
+                conn.commit()
+                if cursor.rowcount == 0:
+                    return jsonify({'error': 'Запись не найдена'}), 404
             return jsonify({'success': True})
     finally:
         conn.close()
@@ -275,42 +267,37 @@ def api_admin_nomination(nomination_id):
 def api_admin_scenarios():
     conn = get_db_connection()
     try:
-        cursor = conn.cursor()
         if request.method == 'GET':
-            cursor.execute('SELECT id, name, file_name, file_data, created_at FROM scenarios ORDER BY created_at DESC')
-            scenarios = cursor.fetchall()
-            result = []
-            for s in scenarios:
-                result.append({
-                    'id': str(s['id']),
-                    'name': s['name'],
-                    'file_name': s['file_name'],
-                    'file_data': s['file_data'],
-                    'created_at': s['created_at']
-                })
-            return jsonify(result)
+            with conn.cursor() as cursor:
+                cursor.execute('SELECT id, name, file_name, file_data, created_at FROM scenarios ORDER BY created_at DESC')
+                scenarios = cursor.fetchall()
+                for s in scenarios:
+                    s['id'] = str(s['id'])
+                return jsonify(scenarios)
 
         elif request.method == 'POST':
             data = request.json
             if not data.get('name') or not data.get('fileData'):
                 return jsonify({'error': 'Название и ссылка на файл обязательны'}), 400
             created_at = datetime.now().strftime('%d.%m.%Y')
-            cursor.execute(
-                'INSERT INTO scenarios (name, file_name, file_data, created_at) VALUES (?, ?, ?, ?)',
-                (data['name'], data.get('fileName', ''), data['fileData'], created_at)
-            )
-            conn.commit()
-            new_id = cursor.lastrowid
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    'INSERT INTO scenarios (name, file_name, file_data, created_at) VALUES (%s, %s, %s, %s)',
+                    (data['name'], data.get('fileName', ''), data['fileData'], created_at)
+                )
+                conn.commit()
+                new_id = cursor.lastrowid
             return jsonify({'id': str(new_id), 'name': data['name'], 'fileName': data.get('fileName', ''), 'fileData': data['fileData'], 'createdAt': created_at}), 201
 
         elif request.method == 'DELETE':
             scenario_id = request.args.get('id')
             if not scenario_id:
                 return jsonify({'error': 'id не указан'}), 400
-            cursor.execute('DELETE FROM scenarios WHERE id = ?', (scenario_id,))
-            conn.commit()
-            if cursor.rowcount == 0:
-                return jsonify({'error': 'Сценарий не найден'}), 404
+            with conn.cursor() as cursor:
+                cursor.execute('DELETE FROM scenarios WHERE id = %s', (scenario_id,))
+                conn.commit()
+                if cursor.rowcount == 0:
+                    return jsonify({'error': 'Сценарий не найден'}), 404
             return jsonify({'success': True})
     finally:
         conn.close()
@@ -322,34 +309,29 @@ def admin_export():
     conn = get_db_connection()
     try:
         # Экспортируем все данные
-        cursor = conn.cursor()
-        cursor.execute('SELECT id, name FROM nominations')
-        nominations_rows = cursor.fetchall()
-        nominations_data = {}
-        for row in nominations_rows:
-            nom_id = row['id']
-            cursor.execute('SELECT id, photo, description FROM entries WHERE nomination_id = ?', (nom_id,))
-            entries = cursor.fetchall()
-            result_entries = []
-            for e in entries:
-                result_entries.append({
-                    'id': str(e['id']),
-                    'photo': e['photo'],
-                    'description': e['description']
-                })
-            nominations_data[nom_id] = result_entries
+        with conn.cursor() as cursor:
+            cursor.execute('SELECT id, name FROM nominations')
+            nominations_rows = cursor.fetchall()
+            nominations_data = {}
+            for row in nominations_rows:
+                nom_id = row['id']
+                cursor.execute('SELECT id, photo, description FROM entries WHERE nomination_id = %s', (nom_id,))
+                entries = cursor.fetchall()
+                for e in entries:
+                    e['id'] = str(e['id'])
+                nominations_data[nom_id] = entries
 
-        cursor.execute('SELECT id, name, file_name, file_data, created_at FROM scenarios')
-        scenarios_rows = cursor.fetchall()
-        scenarios_data = []
-        for s in scenarios_rows:
-            scenarios_data.append({
-                'id': str(s['id']),
-                'name': s['name'],
-                'fileName': s['file_name'],
-                'fileData': s['file_data'],
-                'createdAt': s['created_at']
-            })
+            cursor.execute('SELECT id, name, file_name, file_data, created_at FROM scenarios')
+            scenarios_rows = cursor.fetchall()
+            scenarios_data = []
+            for s in scenarios_rows:
+                scenarios_data.append({
+                    'id': str(s['id']),
+                    'name': s['name'],
+                    'fileName': s['file_name'],
+                    'fileData': s['file_data'],
+                    'createdAt': s['created_at']
+                })
 
         all_data = {
             'exportDate': datetime.now().isoformat(),
@@ -381,27 +363,27 @@ def admin_import():
         data = json.load(file)
         conn = get_db_connection()
         try:
-            cursor = conn.cursor()
-            # Очищаем существующие данные
-            cursor.execute('DELETE FROM entries')
-            cursor.execute('DELETE FROM scenarios')
-            # Импортируем номинации (записи)
-            if 'nominations' in data:
-                for nom_id, entries in data['nominations'].items():
-                    if nom_id in NOMINATIONS:  # только валидные
-                        for entry in entries:
-                            cursor.execute(
-                                'INSERT INTO entries (nomination_id, photo, description) VALUES (?, ?, ?)',
-                                (nom_id, entry['photo'], entry['description'])
-                            )
-            # Импортируем сценарии
-            if 'scenarios' in data:
-                for sc in data['scenarios']:
-                    cursor.execute(
-                        'INSERT INTO scenarios (name, file_name, file_data, created_at) VALUES (?, ?, ?, ?)',
-                        (sc['name'], sc.get('fileName', ''), sc['fileData'], sc.get('createdAt', datetime.now().strftime('%d.%m.%Y')))
-                    )
-            conn.commit()
+            with conn.cursor() as cursor:
+                # Очищаем существующие данные
+                cursor.execute('DELETE FROM entries')
+                cursor.execute('DELETE FROM scenarios')
+                # Импортируем номинации (записи)
+                if 'nominations' in data:
+                    for nom_id, entries in data['nominations'].items():
+                        if nom_id in NOMINATIONS:  # только валидные
+                            for entry in entries:
+                                cursor.execute(
+                                    'INSERT INTO entries (nomination_id, photo, description) VALUES (%s, %s, %s)',
+                                    (nom_id, entry['photo'], entry['description'])
+                                )
+                # Импортируем сценарии
+                if 'scenarios' in data:
+                    for sc in data['scenarios']:
+                        cursor.execute(
+                            'INSERT INTO scenarios (name, file_name, file_data, created_at) VALUES (%s, %s, %s, %s)',
+                            (sc['name'], sc.get('fileName', ''), sc['fileData'], sc.get('createdAt', datetime.now().strftime('%d.%m.%Y')))
+                        )
+                conn.commit()
             return jsonify({'success': True})
         finally:
             conn.close()
