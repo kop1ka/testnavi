@@ -708,33 +708,6 @@ def get_catalog():
     permanent_paths = set(permanent_items.get('permanent_items', []))
     mark_permanent_recursive(catalog.get('children', []), permanent_paths)
     
-    # Функция для поиска index.html в проекте (в корне или в подпапках)
-    def find_index_html_in_project(proj_path):
-        """
-        Рекурсивно ищет index.html в проекте.
-        Сначала проверяет корень проекта, затем сканирует подпапки.
-        
-        Args:
-            proj_path: Путь к папке проекта
-            
-        Returns:
-            tuple: (полный_путь_к_index_html, относительный_путь_от_корня_проекта) или (None, None)
-        """
-        # Сначала проверяем корень проекта
-        root_index = os.path.join(proj_path, 'index.html')
-        if os.path.exists(root_index) and os.path.isfile(root_index):
-            return root_index, 'index.html'
-        
-        # Ищем рекурсивно во всех подпапках
-        for root, dirs, files in os.walk(proj_path):
-            if 'index.html' in files:
-                full_path = os.path.join(root, 'index.html')
-                # Вычисляем относительный путь от корня проекта
-                relative_path = os.path.relpath(full_path, proj_path)
-                return full_path, relative_path
-        
-        return None, None
-    
     # Добавляем проекты из папки projects напрямую в каталог (без создания папки projects)
     if os.path.exists(PROJECTS_DIR):
         # Создаём словарь существующих проектов для быстрого поиска
@@ -750,10 +723,8 @@ def get_catalog():
         for project_name in os.listdir(PROJECTS_DIR):
             project_path = os.path.join(PROJECTS_DIR, project_name)
             if os.path.isdir(project_path):
-                # Ищем index.html в проекте (в корне или в подпапках)
-                index_html_path, relative_index_path = find_index_html_in_project(project_path)
-                
-                if index_html_path is not None:
+                index_html_path = os.path.join(project_path, 'index.html')
+                if os.path.exists(index_html_path):
                     # Проверяем, есть ли уже этот проект в каталоге
                     existing_idx = existing_project_indices.get(project_name.lower())
                     
@@ -771,7 +742,7 @@ def get_catalog():
                             "name": existing_project.get('name', project_name),
                             "icon": icon_to_use,
                             "children": None,
-                            "url": f"/projects/{project_name}/{relative_index_path}",
+                            "url": f"/projects/{project_name}/index.html",
                             "modified": datetime.fromtimestamp(os.path.getmtime(index_html_path)).strftime('%Y-%m-%d %H:%M'),
                             "permanent": True
                         }
@@ -781,7 +752,7 @@ def get_catalog():
                             "name": project_name,
                             "icon": "page/logo.png",
                             "children": None,
-                            "url": f"/projects/{project_name}/{relative_index_path}",
+                            "url": f"/projects/{project_name}/index.html",
                             "modified": datetime.fromtimestamp(os.path.getmtime(index_html_path)).strftime('%Y-%m-%d %H:%M'),
                             "permanent": True
                         }
