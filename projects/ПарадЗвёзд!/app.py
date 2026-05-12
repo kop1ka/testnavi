@@ -46,13 +46,13 @@ def create_blueprint():
     """
     # Создаём Blueprint для проекта "ПарадЗвёзд"
     # url_prefix будет установлен при регистрации в главном приложении
-    # static_url_path настроен явно для корректной работы статики
+    # static_url_path будет настроен автоматически относительно url_prefix
     parad_zvezd_bp = Blueprint(
         'parad_zvezd', 
         __name__, 
         template_folder='templates',
-        static_folder='static',
-        static_url_path='/static'  # Явно указываем путь к статике относительно префикса Blueprint
+        static_folder='static'
+        # static_url_path не указан - Flask автоматически установит путь относительно url_prefix при регистрации
     )
     
     # Инициализируем БД при создании Blueprint (только если функция существует)
