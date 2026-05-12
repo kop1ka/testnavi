@@ -20,7 +20,7 @@ import re
 import threading
 import requests
 from datetime import datetime, timedelta
-from urllib.parse import unquote, urlparse
+from urllib.parse import unquote, urlparse, quote
 from flask import Flask, render_template_string, request, jsonify, send_from_directory, redirect, url_for, session, flash, Response
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_wtf import CSRFProtect
@@ -771,7 +771,7 @@ def get_catalog():
                             "name": existing_project.get('name', project_name),
                             "icon": icon_to_use,
                             "children": None,
-                            "url": f"/projects/{project_name}/{relative_index_path}",
+                            "url": f"/projects/{quote(project_name)}/{relative_index_path}",
                             "modified": datetime.fromtimestamp(os.path.getmtime(index_html_path)).strftime('%Y-%m-%d %H:%M'),
                             "permanent": True
                         }
@@ -781,7 +781,7 @@ def get_catalog():
                             "name": project_name,
                             "icon": "page/logo.png",
                             "children": None,
-                            "url": f"/projects/{project_name}/{relative_index_path}",
+                            "url": f"/projects/{quote(project_name)}/{relative_index_path}",
                             "modified": datetime.fromtimestamp(os.path.getmtime(index_html_path)).strftime('%Y-%m-%d %H:%M'),
                             "permanent": True
                         }
@@ -1156,12 +1156,14 @@ def serve_project_file(filename):
     API endpoint для раздачи файлов проектов из папки projects/
     
     Args:
-        filename: Путь к файлу относительно папки projects/
+        filename: Путь к файлу относительно папки projects/ (URL-encoded)
     
     Returns:
         Response: Файл проекта (html, css, js, images, etc.)
     """
-    return send_from_directory(PROJECTS_DIR, filename, max_age=86400)  # Кэширование на 24 часа
+    # Декодируем URL-encoded имя файла для корректной работы с кириллическими именами папок
+    decoded_filename = unquote(filename)
+    return send_from_directory(PROJECTS_DIR, decoded_filename, max_age=86400)  # Кэширование на 24 часа
 
 
 @app.route('/api/proxy-image')
