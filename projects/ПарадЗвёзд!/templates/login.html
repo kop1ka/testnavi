@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход - Панель администратора</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="page-container">
+        <div class="container" style="max-width:450px; margin-top:100px;">
+            <a href="{{ url_for('index') }}" class="btn btn-outline" style="margin-bottom:20px;">← На главную</a>
+            <div class="form-card">
+                <div class="card-header" style="text-align:center;">
+                    <h1 style="font-size:2rem;">🔐</h1>
+                    <h2>Вход для администратора</h2>
+                    <p style="color:#6b7280;">Введите логин и пароль</p>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        <div class="form-group"><label>Логин</label><input type="text" name="username" required autofocus></div>
+                        <div class="form-group"><label>Пароль</label><input type="password" name="password" required></div>
+                        {% if error %}<div style="padding:12px;background:#fee2e2;color:#b91c1c;border-radius:12px;margin-bottom:20px;text-align:center;">{{ error }}</div>{% endif %}
+                        <button type="submit" class="btn btn-primary" style="width:100%;">Войти</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

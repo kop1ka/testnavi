@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Редактирование номинации - Админ</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="page-container">
+        <div class="container">
+            <div class="header-section">
+                <a href="{{ url_for('admin_nominations') }}" class="btn btn-outline">← Назад к номинациям</a>
+                <h1 class="page-title" id="nominationTitle">Номинация</h1>
+                <button class="btn btn-success" onclick="showAddForm()">+ Добавить</button>
+            </div>
+
+            <div id="formCard" class="form-card" style="display: none;">
+                <div class="card-header"><h2 id="formTitle">Добавить запись</h2></div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label>Фотография</label>
+                        <button type="button" class="btn btn-primary" onclick="window.open('https://vm-ftp.anosov.ru/vm/Парад/', '_blank')" style="margin-bottom:10px;">📂 Открыть папку на сервере</button>
+                        <div style="display:flex;gap:10px;margin-bottom:10px;">
+                            <input type="text" id="photoUrlInput" placeholder="Вставьте ссылку на изображение..." style="flex:1;">
+                            <button type="button" class="btn btn-primary" onclick="loadPhoto()">Загрузить</button>
+                        </div>
+                        <div id="photoPreview" style="display:none; margin-top:10px;"><img id="previewImg" style="max-width:100%;max-height:200px;border-radius:8px;"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Описание</label>
+                        <textarea id="descriptionInput" rows="4" placeholder="Введите описание..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-primary" onclick="saveEntry()" id="saveButtonText">Добавить</button>
+                        <button class="btn btn-outline" onclick="cancelForm()">Отмена</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="entriesList"><div class="empty-state" id="emptyState"><p>Загрузка...</p></div></div>
+        </div>
+    </div>
+    <script>
+        const nominationId = '{{ nomination_id }}';
+        const nominationNames = {
+            'zvezdnyy-lider': 'Звёздный лидер', 'zvezdnyy-nastavnik': 'Звёздный наставник', 'zvezdnyy-partner': 'Звёздный партнёр',
+            'zvezdnyy-aktiv': 'Звёздный актив', 'zvezdnaya-stsena': 'Звёздная сцена', 'zvezdnaya-podderzhka': 'Звёздная поддержка',
+            'zvezdnyy-start': 'Звёздный старт', 'zvezdnoe-stremlenie': 'Звёздное стремление', 'zvezdnoe-masterstvo': 'Звёздное мастерство',
+            'zvezdnyy-intellekt': 'Звёздный интеллект', 'zvezdnyy-vypusknik': 'Звёздный выпускник'
+        };
+        document.getElementById('nominationTitle').textContent = nominationNames[nominationId] || 'Номинация';
+
+        let editingId = null, currentPhoto = '';
+
+        async function loadEntries() {
+            const res = await fetch(`/api/admin/nomination/${nominationId}`);
+            const entries = await res.json();
+            const container = document.getElementById('entriesList');
+            const emptyState = document.getElementById('emptyState');
+            if (!entries.length) {
+                emptyState.innerHTML = '<p>Записей пока нет. Нажмите "Добавить".</p>';
+                emptyState.style.display = 'block';
+                container.innerHTML = '';
+                return;
+            }
+            emptyState.style.display = 'none';
+            container.innerHTML = '';
+            entries.forEach(entry => {
+                const card = document.createElement('div');
+                card.className = 'entry-card';
+                card.innerHTML = `
+                    <div class="entry-content">
+                        <div class="entry-photo"><img src="${escapeHtml(entry.photo)}"></div>
+                        <div class="entry-details">
+                            <p class="entry-description">${escapeHtml(entry.description)}</p>
+                            <div class="entry-actions">
+                                <button class="btn btn-edit" onclick="editEntry('${entry.id}', '${escapeAttr(entry.photo)}', '${escapeAttr(entry.description)}')">✏️ Редактировать</button>
+                                <button class="btn btn-delete" onclick="deleteEntry('${entry.id}')">🗑️ Удалить</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function showAddForm() {
+            editingId = null;
+            currentPhoto = '';
+            document.getElementById('formTitle').textContent = 'Добавить запись';
+            document.getElementById('saveButtonText').textContent = 'Добавить';
+            document.getElementById('photoUrlInput').value = '';
+            document.getElementById('descriptionInput').value = '';
+            document.getElementById('photoPreview').style.display = 'none';
+            document.getElementById('formCard').style.display = 'block';
+        }
+
+        function loadPhoto() {
+            const url = document.getElementById('photoUrlInput').value.trim();
+            if (!url) { alert('Вставьте ссылку'); return; }
+            currentPhoto = url;
+            document.getElementById('previewImg').src = url;
+            document.getElementById('photoPreview').style.display = 'block';
+        }
+
+        function editEntry(id, photo, desc) {
+            editingId = id;
+            currentPhoto = photo;
+            document.getElementById('formTitle').textContent = 'Редактировать запись';
+            document.getElementById('saveButtonText').textContent = 'Сохранить';
+            document.getElementById('photoUrlInput').value = photo;
+            document.getElementById('descriptionInput').value = desc;
+            document.getElementById('previewImg').src = photo;
+            document.getElementById('photoPreview').style.display = 'block';
+            document.getElementById('formCard').style.display = 'block';
+            document.getElementById('formCard').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function saveEntry() {
+            const description = document.getElementById('descriptionInput').value.trim();
+            if (!currentPhoto || !description) {
+                alert('Заполните фото и описание');
+                return;
+            }
+            const payload = { photo: currentPhoto, description };
+            let url = `/api/admin/nomination/${nominationId}`;
+            let method = 'POST';
+            if (editingId) {
+                method = 'PUT';
+                payload.id = editingId;
+            }
+            const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (res.ok) {
+                cancelForm();
+                loadEntries();
+            } else {
+                alert('Ошибка сохранения');
+            }
+        }
+
+        async function deleteEntry(id) {
+            if (!confirm('Удалить запись?')) return;
+            const res = await fetch(`/api/admin/nomination/${nominationId}?id=${id}`, { method: 'DELETE' });
+            if (res.ok) loadEntries();
+            else alert('Ошибка удаления');
+        }
+
+        function cancelForm() {
+            document.getElementById('formCard').style.display = 'none';
+            editingId = null;
+            currentPhoto = '';
+        }
+
+        function escapeHtml(str) { const div = document.createElement('div'); div.textContent = str; return div.innerHTML; }
+        function escapeAttr(str) { return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+        loadEntries();
+    </script>
+</body>
+</html>
