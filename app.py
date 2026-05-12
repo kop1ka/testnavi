@@ -1172,9 +1172,10 @@ def serve_project_file(filename):
     else:
         project_name, remaining_path = parts
     
+    project_path = os.path.join(PROJECTS_DIR, project_name)
+    
     # Проверяем, есть ли у этого проекта Flask приложение
     if project_name in project_flask_info:
-        project_path = os.path.join(PROJECTS_DIR, project_name)
         file_path = os.path.join(project_path, remaining_path)
         
         # Если файл существует, отдаём его напрямую
@@ -1226,8 +1227,24 @@ def serve_project_file(filename):
             except Exception as e:
                 print(f"Ошибка обработки запроса Flask приложением '{project_name}': {e}")
     
-    # Стандартная обработка - отдаём файл напрямую из папки проекта
-    return send_from_directory(PROJECTS_DIR, filename, max_age=86400)  # Кэширование на 24 часа
+    # Стандартная обработка - пробуем найти файл в нескольких возможных местах
+    # Сначала проверяем прямой путь
+    file_path = os.path.join(project_path, remaining_path)
+    if os.path.exists(file_path) and os.path.isfile(file_path):
+        return send_from_directory(project_path, remaining_path, max_age=86400)
+    
+    # Для проектов с шаблонами в templates/ (например, Flask проекты без загрузки)
+    templates_path = os.path.join(project_path, 'templates', remaining_path)
+    if os.path.exists(templates_path) and os.path.isfile(templates_path):
+        return send_from_directory(os.path.join(project_path, 'templates'), remaining_path, max_age=86400)
+    
+    # Для статических файлов в static/
+    static_path = os.path.join(project_path, 'static', remaining_path)
+    if os.path.exists(static_path) and os.path.isfile(static_path):
+        return send_from_directory(os.path.join(project_path, 'static'), remaining_path, max_age=86400)
+    
+    # Файл не найден
+    return jsonify({'error': f'Файл не найден: {filename}'}), 404
 
 
 @app.route('/api/proxy-image')
