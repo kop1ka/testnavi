@@ -1390,6 +1390,74 @@ def proxy_image():
         return jsonify({'error': f'Ошибка загрузки: {str(e)}'}), 500
 
 
+@app.route('/api/video-proxy')
+def proxy_video():
+    """
+    API endpoint для проксирования видеофайлов с внешних URL
+    
+    Используется для открытия видео в браузере вместо скачивания.
+    Устанавливает правильный Content-Type и убирает Content-Disposition: attachment.
+    
+    Query params:
+        url: Полный URL видеофайла
+    
+    Returns:
+        Response: Видеофайл с правильным Content-Type для воспроизведения в браузере
+    """
+    video_url = request.args.get('url', '')
+    
+    if not video_url:
+        return jsonify({'error': 'URL не указан'}), 400
+    
+    # Проверка, что URL принадлежит нашему доверенному домену
+    parsed = urlparse(video_url)
+    if parsed.netloc != 'vm-ftp.anosov.ru':
+        return jsonify({'error': 'Недоверенный домен'}), 403
+    
+    try:
+        # Загружаем видео с внешнего сервера
+        response = requests.get(video_url, timeout=30, stream=True)
+        response.raise_for_status()
+        
+        # Определяем Content-Type по расширению файла
+        video_content_types = {
+            '.mp4': 'video/mp4',
+            '.webm': 'video/webm',
+            '.ogg': 'video/ogg',
+            '.mov': 'video/quicktime',
+            '.avi': 'video/x-msvideo',
+            '.mkv': 'video/x-matroska',
+            '.flv': 'video/x-flv',
+            '.wmv': 'video/x-ms-wmv',
+            '.m4v': 'video/x-m4v'
+        }
+        
+        # Получаем расширение из URL
+        from urllib.parse import unquote
+        decoded_url = unquote(video_url)
+        ext = os.path.splitext(decoded_url)[1].lower()
+        content_type = video_content_types.get(ext, response.headers.get('Content-Type', 'video/mp4'))
+        
+        # Создаём ответ с правильными заголовками для воспроизведения в браузере
+        proxy_response = Response(
+            response.iter_content(chunk_size=8192),
+            status=200,
+            content_type=content_type
+        )
+        
+        # Добавляем заголовки для потоковой передачи и кэширования
+        proxy_response.headers['Cache-Control'] = 'public, max-age=3600'
+        proxy_response.headers['Accept-Ranges'] = 'bytes'
+        
+        # Важно: НЕ устанавливаем Content-Disposition: attachment
+        # Это позволяет браузеру воспроизводить видео вместо скачивания
+        
+        return proxy_response
+        
+    except requests.exceptions.RequestException as e:
+        return jsonify({'error': f'Ошибка загрузки видео: {str(e)}'}), 500
+
+
 if __name__ == '__main__':
     # Убедиться, что директория данных существует
     ensure_data_dir(DATA_DIR)

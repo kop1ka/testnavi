@@ -193,6 +193,16 @@ document.addEventListener('DOMContentLoaded', () => {
         return videoExtensions.test(url);
     }
 
+    // Функция для получения прокси-URL для видео
+    function getVideoProxyUrl(url) {
+        // Проверяем, является ли URL внешним (с vm-ftp.anosov.ru)
+        if (url.includes('vm-ftp.anosov.ru')) {
+            return '/api/video-proxy?url=' + encodeURIComponent(url);
+        }
+        // Для локальных или других URL возвращаем как есть
+        return url;
+    }
+
     function handleItemClick(event) {
         const itemDiv = event.target.closest('.item');
         if (!itemDiv) return;
@@ -214,8 +224,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Проверяем, является ли файл видео по расширению в URL
                 if (isVideoFile(itemData.url)) {
-                    // Видео – открываем в текущей вкладке
-                    window.location.href = itemData.url;
+                    // Видео – открываем в текущей вкладке через прокси
+                    window.location.href = getVideoProxyUrl(itemData.url);
                 } else {
                     // Остальные файлы – переход в текущей вкладке
                     window.location.href = itemData.url;
