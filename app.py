@@ -1453,13 +1453,46 @@ def proxy_video():
         ext = os.path.splitext(decoded_url)[1].lower()
         content_type = video_content_types.get(ext, 'video/mp4')
 
-        # Загружаем видео с сервера (streaming для поддержки Range запросов)
+        # Сначала получаем информацию о файле (размер)
+        head_response = requests.head(video_url, timeout=30, allow_redirects=True)
+        head_response.raise_for_status()
+        file_size = int(head_response.headers.get('Content-Length', 0))
+        
+        # Проверяем поддержку Range запросов на удалённом сервере
+        supports_ranges = head_response.headers.get('Accept-Ranges', '').lower() == 'bytes'
+        
+        # Обрабатываем Range запрос от браузера
+        range_header = request.headers.get('Range', '')
+        
+        if range_header and supports_ranges and file_size > 0:
+            # Браузер запрашивает часть файла (для перемотки)
+            range_match = re.match(r'bytes=(\d+)-(\d*)', range_header)
+            if range_match:
+                start = int(range_match.group(1))
+                end = int(range_match.group(2)) if range_match.group(2) else file_size - 1
+                end = min(end, file_size - 1)
+                
+                # Запрашиваем диапазон с удалённого сервера
+                headers = {'Range': f'bytes={start}-{end}'}
+                response = requests.get(video_url, headers=headers, timeout=60, stream=True)
+                response.raise_for_status()
+                
+                # Возвращаем частичный контент
+                proxy_response = Response(
+                    response.iter_content(chunk_size=8192),
+                    status=206,  # Partial Content
+                    mimetype=content_type
+                )
+                proxy_response.headers['Content-Length'] = str(end - start + 1)
+                proxy_response.headers['Content-Range'] = f'bytes {start}-{end}/{file_size}'
+                proxy_response.headers['Accept-Ranges'] = 'bytes'
+                proxy_response.headers['Content-Disposition'] = 'inline; filename="video"'
+                return proxy_response
+        
+        # Если нет Range запроса или сервер не поддерживает ranges - отдаём всё видео
         response = requests.get(video_url, timeout=60, stream=True)
         response.raise_for_status()
-
-        # Получаем размер файла если доступен
-        file_size = int(response.headers.get('Content-Length', 0))
-
+        
         # Создаём ответ для клиента
         proxy_response = Response(
             response.iter_content(chunk_size=8192),

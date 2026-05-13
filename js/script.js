@@ -186,13 +186,28 @@ document.addEventListener('DOMContentLoaded', () => {
         backBtn.hidden = historyStack.length <= 1;
     }
 
-    // ----- НОВАЯ ФУНКЦИЯ: проверка, является ли файл видео -----
+    // ----- Функция: проверка, является ли файл видео -----
     function isVideoFile(url) {
         if (!url) return false;
-        // Очищаем URL от пробелов и декодируем проценты перед проверкой
-        const cleanUrl = decodeURIComponent(url.trim());
-        const videoExtensions = /\.(mp4|webm|ogg|mov|avi|mkv|flv|wmv|m4v)$/i;
-        return videoExtensions.test(cleanUrl);
+        try {
+            // Очищаем URL от пробелов по краям
+            const trimmedUrl = url.trim();
+            // Пытаемся декодировать URL, но если он уже содержит некорректные проценты - используем как есть
+            let cleanUrl;
+            try {
+                cleanUrl = decodeURIComponent(trimmedUrl);
+            } catch (e) {
+                cleanUrl = trimmedUrl;
+            }
+            // Регулярное выражение для проверки расширения видео (с учётом возможных пробелов в конце)
+            const videoExtensions = /\.(mp4|webm|ogg|mov|avi|mkv|flv|wmv|m4v)\s*$/i;
+            const isVideo = videoExtensions.test(cleanUrl);
+            console.log('isVideoFile check:', { original: url, trimmed: trimmedUrl, decoded: cleanUrl, isVideo: isVideo });
+            return isVideo;
+        } catch (e) {
+            console.warn('Ошибка при проверке видео:', e);
+            return false;
+        }
     }
 
     // Функция для получения прокси-URL для видео
@@ -226,14 +241,22 @@ document.addEventListener('DOMContentLoaded', () => {
             if (itemData.url) {
                 saveState();
 
+                // Очищаем URL от лишних пробелов перед проверкой и использованием
+                const cleanUrl = itemData.url.trim();
+                
+                console.log('handleItemClick:', { name: itemData.name, url: itemData.url, cleanUrl: cleanUrl });
+                
                 // Проверяем, является ли файл видео по расширению в URL
-                if (isVideoFile(itemData.url)) {
+                if (isVideoFile(cleanUrl)) {
+                    console.log('Это видео, открываем через video-player');
                     // Видео – открываем в новой вкладке через видеоплеер
-                    const videoPlayerUrl = `/video-player?url=${encodeURIComponent(itemData.url.trim())}&name=${encodeURIComponent(itemData.name)}`;
+                    const videoPlayerUrl = `/video-player?url=${encodeURIComponent(cleanUrl)}&name=${encodeURIComponent(itemData.name)}`;
+                    console.log('Video player URL:', videoPlayerUrl);
                     window.open(videoPlayerUrl, '_blank');
                 } else {
+                    console.log('Это не видео, открываем напрямую');
                     // Остальные файлы – переход в текущей вкладке
-                    window.location.href = itemData.url;
+                    window.location.href = cleanUrl;
                 }
             } else {
                 alert(`Вы выбрали: ${itemData.name}\n(URL не указан)`);

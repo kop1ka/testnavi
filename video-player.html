@@ -80,39 +80,81 @@
     <script>
         // Получаем параметры из URL
         const urlParams = new URLSearchParams(window.location.search);
-        const videoUrl = urlParams.get('url');
-        
+        let videoUrl = urlParams.get('url');
+
+        console.log('Video player loaded, URL param:', videoUrl);
+
         if (!videoUrl) {
             showError('URL видео не указан.');
             hideLoading();
         } else {
-            // Используем прокси для открытия видео в браузере
-            // Очищаем URL от лишних пробелов перед кодированием
-            const cleanVideoUrl = videoUrl.trim();
-            const proxyUrl = `/api/video-proxy?url=${encodeURIComponent(cleanVideoUrl)}`;
+            // Очищаем URL от лишних пробелов
+            videoUrl = videoUrl.trim();
             
+            console.log('Clean video URL:', videoUrl);
+            
+            // Используем прокси для открытия видео в браузере
+            // URL уже закодирован в параметре, декодируем его перед созданием прокси
+            let decodedVideoUrl = videoUrl;
+            try {
+                decodedVideoUrl = decodeURIComponent(videoUrl);
+            } catch (e) {}
+            
+            const proxyUrl = '/api/video-proxy?url=' + encodeURIComponent(decodedVideoUrl);
+
+            console.log('Proxy URL:', proxyUrl);
+
             const videoPlayer = document.getElementById('videoPlayer');
             const videoContainer = document.getElementById('videoContainer');
-            
+
             // Устанавливаем источник видео через прокси
             videoPlayer.src = proxyUrl;
-            videoPlayer.setAttribute('type', 'video/mp4');
             videoPlayer.setAttribute('playsinline', '');
             videoPlayer.setAttribute('webkit-playsinline', '');
+
+            // Определяем тип видео по расширению
+            let cleanUrl = videoUrl;
+            try {
+                cleanUrl = decodeURIComponent(videoUrl);
+            } catch (e) {}
             
+            console.log('Decoded URL for extension check:', cleanUrl);
+            
+            const extMatch = cleanUrl.match(/\.(mp4|webm|ogg|mov|avi|mkv|flv|wmv|m4v)\s*$/i);
+            if (extMatch) {
+                const ext = extMatch[1].toLowerCase();
+                const mimeTypes = {
+                    'mp4': 'video/mp4',
+                    'webm': 'video/webm',
+                    'ogg': 'video/ogg',
+                    'mov': 'video/quicktime',
+                    'avi': 'video/x-msvideo',
+                    'mkv': 'video/x-matroska',
+                    'flv': 'video/x-flv',
+                    'wmv': 'video/x-ms-wmv',
+                    'm4v': 'video/x-m4v'
+                };
+                if (mimeTypes[ext]) {
+                    console.log('Setting MIME type:', mimeTypes[ext]);
+                    videoPlayer.setAttribute('type', mimeTypes[ext]);
+                }
+            }
+
             // Принудительно запускаем воспроизведение после загрузки метаданных
             videoPlayer.addEventListener('loadedmetadata', function() {
+                console.log('Video metadata loaded. Duration:', videoPlayer.duration, 'sec');
                 hideLoading();
                 videoContainer.style.display = 'block';
-                console.log('Видео загружено. Длительность:', videoPlayer.duration, 'сек');
                 // Пытаемся запустить воспроизведение (может быть заблокировано браузером без взаимодействия)
                 videoPlayer.play().catch(e => console.log('Автовоспроизведение заблокировано:', e));
             });
-            
+
             videoPlayer.addEventListener('error', function(e) {
+                console.error('Video error event:', e);
+                console.error('Video element error:', videoPlayer.error);
                 hideLoading();
                 let errorMsg = 'Ошибка загрузки видео. ';
-                
+
                 if (videoPlayer.error) {
                     switch(videoPlayer.error.code) {
                         case 1: errorMsg += 'Загрузка прервана.'; break;
@@ -121,28 +163,30 @@
                         case 4: errorMsg += 'Формат видео не поддерживается браузером.'; break;
                     }
                 }
-                
+
                 showError(errorMsg);
-                console.error('Ошибка видео:', e);
             });
-            
+
             videoPlayer.addEventListener('waiting', function() {
+                console.log('Video buffering...');
                 document.getElementById('loading').textContent = 'Буферизация...';
                 document.getElementById('loading').style.display = 'block';
             });
-            
+
             videoPlayer.addEventListener('playing', function() {
+                console.log('Video playing');
                 hideLoading();
             });
-            
+
             // Запускаем загрузку видео
+            console.log('Starting video load...');
             videoPlayer.load();
         }
-        
+
         function hideLoading() {
             document.getElementById('loading').style.display = 'none';
         }
-        
+
         function showError(message) {
             const errorDiv = document.getElementById('error');
             errorDiv.textContent = message;
