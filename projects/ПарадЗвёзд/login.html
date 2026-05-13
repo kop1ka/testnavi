@@ -9,7 +9,7 @@
 <body>
     <div class="page-container">
         <div class="container" style="max-width: 450px; margin-top: 100px;">
-            <a href="/index.html" class="btn btn-outline" style="margin-bottom: 20px; display: inline-block;">← На главную</a>
+            <a href="index.html" class="btn btn-outline" style="margin-bottom: 20px; display: inline-block;">← На главную</a>
             
             <div class="form-card">
                 <div class="card-header" style="text-align: center;">
@@ -50,7 +50,7 @@
             const errorMessage = document.getElementById('errorMessage');
             
             try {
-                const response = await fetch('/api/login', {
+                const response = await fetch('api/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -66,7 +66,7 @@
                     sessionStorage.setItem('loginTime', new Date().getTime());
                     
                     // Перенаправляем в админ панель
-                    window.location.href = '/admin-panel.html';
+                    window.location.href = 'admin-panel.html';
                 } else {
                     errorMessage.textContent = data.message || 'Неверный логин или пароль';
                     errorMessage.style.display = 'block';

@@ -12,11 +12,12 @@ from flask import Blueprint, request, jsonify, send_from_directory, current_app
 from werkzeug.utils import secure_filename
 
 # Создание Blueprint для интеграции с основным приложением
+# url_prefix определяет путь, по которому будет доступен проект
 parad_zvezd_bp = Blueprint(
     'parad_zvezd',
     __name__,
     static_folder='.',
-    static_url_path='/static'
+    static_url_path=''  # Пустой путь, чтобы файлы обслуживались напрямую по префиксу blueprint
 )
 
 # Папка для хранения данных

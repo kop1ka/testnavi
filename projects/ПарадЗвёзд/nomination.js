@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Проверка авторизации
     if (sessionStorage.getItem('isAdmin') !== 'true') {
         alert('Доступ запрещён! Требуется авторизация.');
-        window.location.href = '/login.html';
+        window.location.href = 'login.html';
         return;
     }
 
@@ -84,11 +84,11 @@ async function saveEntry() {
         
         if (editingEntryId) {
             // Обновление существующей записи
-            url = `/api/nominations/${nominationId}/${editingEntryId}`;
+            url = `api/nominations/${nominationId}/${editingEntryId}`;
             method = 'PUT';
         } else {
             // Добавление новой записи
-            url = `/api/nominations/${nominationId}`;
+            url = `api/nominations/${nominationId}`;
             method = 'POST';
         }
         
@@ -157,7 +157,7 @@ async function deleteEntry(entryId) {
     }
     
     try {
-        const response = await fetch(`/api/nominations/${nominationId}/${entryId}`, {
+        const response = await fetch(`api/nominations/${nominationId}/${entryId}`, {
             method: 'DELETE'
         });
         
@@ -175,7 +175,7 @@ async function deleteEntry(entryId) {
 // Получение записей из API
 async function getEntries() {
     try {
-        const response = await fetch(`/api/nominations/${nominationId}`);
+        const response = await fetch(`api/nominations/${nominationId}`);
         if (response.ok) {
             return await response.json();
         }

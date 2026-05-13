@@ -63,7 +63,7 @@ async function saveScenario() {
             createdAt: new Date().toLocaleDateString('ru-RU')
         };
         
-        const response = await fetch('/api/scenarios', {
+        const response = await fetch('api/scenarios', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -109,7 +109,7 @@ async function deleteScenario(scenarioId) {
     }
     
     try {
-        const response = await fetch(`/api/scenarios/${scenarioId}`, {
+        const response = await fetch(`api/scenarios/${scenarioId}`, {
             method: 'DELETE'
         });
         
@@ -205,7 +205,7 @@ window.onclick = function(event) {
 // Получение сценариев из API
 async function getScenarios() {
     try {
-        const response = await fetch('/api/scenarios');
+        const response = await fetch('api/scenarios');
         if (response.ok) {
             return await response.json();
         }

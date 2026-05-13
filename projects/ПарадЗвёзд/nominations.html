@@ -10,26 +10,26 @@
     <div class="page-container">
         <div class="container">
             <div class="header-section">
-                <a href="/admin-panel.html" class="btn btn-outline">← В админ-панель</a>
+                <a href="admin-panel.html" class="btn btn-outline">← В админ-панель</a>
                 <h1 class="page-title">Управление номинациями</h1>
             </div>
 
             <p class="page-description">Выберите номинацию для управления записями участников.</p>
 
             <div class="nominations-grid">
-                <a href="/nomination.html?id=zvezdnyy-lider" class="nomination-btn btn-orange">Звёздный лидер</a>
-                <a href="/nomination.html?id=zvezdnyy-nastavnik" class="nomination-btn btn-yellow">Звёздный наставник</a>
-                <a href="/nomination.html?id=zvezdnyy-partner" class="nomination-btn btn-lime">Звёздный партнёр</a>
-                <a href="/nomination.html?id=zvezdnyy-aktiv" class="nomination-btn btn-green">Звёздный актив</a>
-                <a href="/nomination.html?id=zvezdnaya-stsena" class="nomination-btn btn-teal">Звёздная сцена</a>
-                <a href="/nomination.html?id=zvezdnaya-podderzhka" class="nomination-btn btn-cyan">Звёздная поддержка</a>
-                <a href="/nomination.html?id=zvezdnyy-start" class="nomination-btn btn-blue">Звёздный старт</a>
-                <a href="/nomination.html?id=zvezdnoe-stremlenie" class="nomination-btn btn-purple">Звёздное стремление</a>
-                <a href="/nomination.html?id=zvezdnoe-masterstvo" class="nomination-btn btn-fuchsia">Звёздное мастерство</a>
-                <a href="/nomination.html?id=zvezdnyy-intellekt" class="nomination-btn btn-pink">Звёздный интеллект</a>
-                <a href="/nomination.html?id=zvezdnyy-vypusknik" class="nomination-btn btn-red">Звёздный выпускник</a>
+                <a href="nomination.html?id=zvezdnyy-lider" class="nomination-btn btn-orange">Звёздный лидер</a>
+                <a href="nomination.html?id=zvezdnyy-nastavnik" class="nomination-btn btn-yellow">Звёздный наставник</a>
+                <a href="nomination.html?id=zvezdnyy-partner" class="nomination-btn btn-lime">Звёздный партнёр</a>
+                <a href="nomination.html?id=zvezdnyy-aktiv" class="nomination-btn btn-green">Звёздный актив</a>
+                <a href="nomination.html?id=zvezdnaya-stsena" class="nomination-btn btn-teal">Звёздная сцена</a>
+                <a href="nomination.html?id=zvezdnaya-podderzhka" class="nomination-btn btn-cyan">Звёздная поддержка</a>
+                <a href="nomination.html?id=zvezdnyy-start" class="nomination-btn btn-blue">Звёздный старт</a>
+                <a href="nomination.html?id=zvezdnoe-stremlenie" class="nomination-btn btn-purple">Звёздное стремление</a>
+                <a href="nomination.html?id=zvezdnoe-masterstvo" class="nomination-btn btn-fuchsia">Звёздное мастерство</a>
+                <a href="nomination.html?id=zvezdnyy-intellekt" class="nomination-btn btn-pink">Звёздный интеллект</a>
+                <a href="nomination.html?id=zvezdnyy-vypusknik" class="nomination-btn btn-red">Звёздный выпускник</a>
 
-                <a href="/scenarios.html" class="nomination-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <a href="scenarios.html" class="nomination-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                     <div class="card-icon">📜</div>
                     <h3 class="card-title">Сценарии мероприятий</h3>
                 </a>
@@ -41,7 +41,7 @@
         // Проверка авторизации
         if (sessionStorage.getItem('isAdmin') !== 'true') {
             alert('Доступ запрещён! Требуется авторизация.');
-            window.location.href = '/login.html';
+            window.location.href = 'login.html';
         }
 
         // Экспорт всех данных
