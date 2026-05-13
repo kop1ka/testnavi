@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Парад Звёзд - Сценарии</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="page-container">
+        <div class="container">
+            <div class="header-section">
+                <a href="nominations-public.html" class="btn btn-outline">← Назад к номинациям</a>
+                <h1 class="page-title">Сценарии мероприятий</h1>
+            </div>
+
+            <p class="page-description">Каждый год для мероприятий создаются уникальные сценарии. Вы можете ознакомиться с ними ниже, нажав на иконку.</p>
+
+            <!-- Список сценариев -->
+            <div id="scenariosList">
+                <div class="empty-state" id="emptyState">
+                    <p>Сценариев пока нет.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для просмотра сценария -->
+    <div id="scenarioModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Сценарий</h2>
+                <button class="modal-close" onclick="closeScenarioModal()">×</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Здесь будет отображаться содержимое сценария -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Загрузка сценариев при старте
+        document.addEventListener('DOMContentLoaded', function() {
+            loadScenarios();
+        });
+
+        // Просмотр сценария
+        function viewScenario(scenarioId) {
+            const scenarios = getScenarios();
+            const scenario = scenarios.find(s => s.id === scenarioId);
+            
+            if (!scenario) return;
+            
+            document.getElementById('modalTitle').textContent = scenario.name;
+            
+            const modalBody = document.getElementById('modalBody');
+            const fileExtension = scenario.fileName.split('.').pop().toLowerCase();
+            
+            if (fileExtension === 'pdf') {
+                modalBody.innerHTML = `
+                    <embed src="${scenario.fileData}" type="application/pdf" width="100%" height="600px" />
+                    <p style="text-align: center; margin-top: 10px;">
+                        <a href="${scenario.fileData}" target="_blank" class="btn btn-primary">
+                            Открыть в новой вкладке
+                        </a>
+                    </p>
+                `;
+            } else if (fileExtension === 'txt') {
+                fetch(scenario.fileData)
+                    .then(response => response.text())
+                    .then(text => {
+                        modalBody.innerHTML = `
+                            <pre style="white-space: pre-wrap; word-wrap: break-word; max-height: 600px; overflow-y: auto; padding: 20px; background: #f9fafb; border-radius: 8px;">${escapeHtml(text)}</pre>
+                            <p style="text-align: center; margin-top: 10px;">
+                                <a href="${scenario.fileData}" target="_blank" class="btn btn-primary">
+                                    Открыть в новой вкладке
+                                </a>
+                            </p>
+                        `;
+                    })
+                    .catch(error => {
+                        modalBody.innerHTML = `
+                            <div style="text-align: center; padding: 40px;">
+                                <div style="font-size: 4rem; margin-bottom: 20px;">⚠️</div>
+                                <p style="color: #6b7280;">Не удалось загрузить файл с сервера</p>
+                                <p style="text-align: center; margin-top: 10px;">
+                                    <a href="${scenario.fileData}" target="_blank" class="btn btn-primary">
+                                        Открыть в новой вкладке
+                                    </a>
+                                </p>
+                            </div>
+                        `;
+                    });
+            } else {
+                modalBody.innerHTML = `
+                    <div style="text-align: center; padding: 40px;">
+                        <div style="font-size: 4rem; margin-bottom: 20px;">📄</div>
+                        <h3>${escapeHtml(scenario.fileName)}</h3>
+                        <p style="color: #6b7280; margin: 20px 0;">Файл формата ${fileExtension.toUpperCase()}</p>
+                        <p style="color: #6b7280; margin-bottom: 30px;">Файл будет открыт с сервера</p>
+                        <a href="${scenario.fileData}" target="_blank" class="btn btn-primary">
+                            Открыть в новой вкладке
+                        </a>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('scenarioModal').style.display = 'flex';
+        }
+
+        // Закрыть модальное окно
+        function closeScenarioModal() {
+            document.getElementById('scenarioModal').style.display = 'none';
+        }
+
+        // Закрытие по клику вне модального окна
+        window.onclick = function(event) {
+            const modal = document.getElementById('scenarioModal');
+            if (event.target === modal) {
+                closeScenarioModal();
+            }
+        }
+
+        // Получение сценариев из localStorage
+        function getScenarios() {
+            const data = localStorage.getItem('scenarios');
+            return data ? JSON.parse(data) : [];
+        }
+
+        // Загрузка и отображение сценариев
+        function loadScenarios() {
+            const scenarios = getScenarios();
+            const scenariosList = document.getElementById('scenariosList');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (!scenariosList || !emptyState) return;
+            
+            if (scenarios.length === 0) {
+                emptyState.style.display = 'block';
+                const cards = scenariosList.querySelectorAll('.scenario-card');
+                cards.forEach(card => card.remove());
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            
+            const cards = scenariosList.querySelectorAll('.scenario-card');
+            cards.forEach(card => card.remove());
+            
+            scenarios.forEach(scenario => {
+                const card = createScenarioCard(scenario);
+                scenariosList.appendChild(card);
+            });
+        }
+
+        // Создание карточки сценария (только для просмотра, без кнопки удаления)
+        function createScenarioCard(scenario) {
+            const card = document.createElement('div');
+            card.className = 'scenario-card';
+            
+            const fileExtension = scenario.fileName.split('.').pop().toLowerCase();
+            let fileIcon = '📄';
+            
+            if (fileExtension === 'pdf') {
+                fileIcon = '📕';
+            } else if (fileExtension === 'doc' || fileExtension === 'docx') {
+                fileIcon = '📘';
+            } else if (fileExtension === 'txt') {
+                fileIcon = '📝';
+            }
+            
+            card.innerHTML = `
+                <div class="scenario-icon" onclick="viewScenario('${scenario.id}')" style="cursor: pointer;">
+                    <div class="icon-circle">
+                        <span class="file-icon">${fileIcon}</span>
+                    </div>
+                    <p class="scenario-name">${escapeHtml(scenario.name)}</p>
+                    <p class="scenario-date">${scenario.createdAt}</p>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        // Экранирование HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

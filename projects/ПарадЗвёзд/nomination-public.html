@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Парад Звёзд - Номинация</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="page-container">
+        <div class="container">
+            <div class="header-section">
+                <a href="nominations-public.html" class="btn btn-outline">← Назад к номинациям</a>
+                <h1 class="page-title" id="nominationTitle">Номинация</h1>
+            </div>
+
+            <!-- Список записей -->
+            <div id="entriesList">
+                <div class="empty-state" id="emptyState">
+                    <p>В этой номинации пока нет записей.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Получение ID номинации из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const nominationId = urlParams.get('id') || 'default';
+
+        const nominationNames = {
+            'zvezdnyy-lider': 'Звёздный лидер',
+            'zvezdnyy-nastavnik': 'Звёздный наставник',
+            'zvezdnyy-partner': 'Звёздный партнёр',
+            'zvezdnyy-aktiv': 'Звёздный актив',
+            'zvezdnaya-stsena': 'Звёздная сцена',
+            'zvezdnaya-podderzhka': 'Звёздная поддержка',
+            'zvezdnyy-start': 'Звёздный старт',
+            'zvezdnoe-stremlenie': 'Звёздное стремление',
+            'zvezdnoe-masterstvo': 'Звёздное мастерство',
+            'zvezdnyy-intellekt': 'Звёздный интеллект',
+            'zvezdnyy-vypusknik': 'Звёздный выпускник'
+        };
+
+        // Загрузка записей при старте
+        document.addEventListener('DOMContentLoaded', function() {
+            const titleElement = document.getElementById('nominationTitle');
+            if (titleElement) {
+                titleElement.textContent = nominationNames[nominationId] || 'Номинация';
+            }
+            loadEntries();
+        });
+
+        // Получение записей из localStorage
+        function getEntries() {
+            const data = localStorage.getItem('nomination-' + nominationId);
+            return data ? JSON.parse(data) : [];
+        }
+
+        // Загрузка и отображение записей
+        function loadEntries() {
+            const entries = getEntries();
+            const entriesList = document.getElementById('entriesList');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (!entriesList || !emptyState) return;
+            
+            if (entries.length === 0) {
+                emptyState.style.display = 'block';
+                const cards = entriesList.querySelectorAll('.entry-card');
+                cards.forEach(card => card.remove());
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            
+            const cards = entriesList.querySelectorAll('.entry-card');
+            cards.forEach(card => card.remove());
+            
+            entries.forEach(entry => {
+                const card = createEntryCard(entry);
+                entriesList.appendChild(card);
+            });
+        }
+
+        // Создание карточки записи (только для просмотра, без кнопок)
+        function createEntryCard(entry) {
+            const card = document.createElement('div');
+            card.className = 'entry-card';
+            
+            const photoUrl = entry.photo || '';
+            const description = escapeHtml(entry.description || '');
+            
+            card.innerHTML = `
+                <div class="entry-content">
+                    <div class="entry-photo">
+                        <img src="${photoUrl}" alt="Фото">
+                    </div>
+                    <div class="entry-details">
+                        <p class="entry-description">${description}</p>
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        // Экранирование HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
