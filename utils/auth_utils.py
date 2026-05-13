@@ -1,4 +1,4 @@
-"""Утилиты для управления пользователями и аутентификацией"""
+"""Утилиты для аутентификации и управления пользователями"""
 import bcrypt
 from datetime import datetime
 from flask_login import UserMixin
@@ -8,6 +8,7 @@ from flask_login import current_user
 
 
 class User(UserMixin):
+    """Класс пользователя для Flask-Login"""
     def __init__(self, id, username, is_admin=False):
         self.id = id
         self.username = username
@@ -18,10 +19,12 @@ class User(UserMixin):
 
 
 def hash_password(password):
+    """Хеширование пароля с bcrypt"""
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
 
 def verify_password(password, password_hash):
+    """Проверка пароля по хешу"""
     try:
         return bcrypt.checkpw(password.encode(), password_hash.encode())
     except Exception:
@@ -29,6 +32,7 @@ def verify_password(password, password_hash):
 
 
 def create_user(username, password, is_admin=False):
+    """Создать структуру данных пользователя"""
     return {
         "id": None,
         "username": username,
@@ -39,6 +43,7 @@ def create_user(username, password, is_admin=False):
 
 
 def admin_required_decorator(f):
+    """Декоратор для ограничения доступа администраторам"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated or not getattr(current_user, 'is_admin', False):
