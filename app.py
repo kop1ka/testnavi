@@ -1430,7 +1430,8 @@ def proxy_video():
     
     # Проверка, что URL принадлежит нашему доверенному домену
     parsed = urlparse(video_url)
-    if parsed.netloc != 'vm-ftp.anosov.ru':
+    allowed_domains = ['vm-ftp.anosov.ru', 'testnavi.onrender.com']
+    if parsed.netloc not in allowed_domains:
         return jsonify({'error': 'Недоверенный домен'}), 403
     
     try:
@@ -1453,8 +1454,15 @@ def proxy_video():
         ext = os.path.splitext(decoded_url)[1].lower()
         content_type = video_content_types.get(ext, 'video/mp4')
 
-        # Сначала получаем информацию о файле (размер)
-        head_response = requests.head(video_url, timeout=30, allow_redirects=True)
+        # Сначала получаем информацию о файле (размер) с правильным User-Agent
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': '*/*',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Connection': 'keep-alive'
+        }
+        
+        head_response = requests.head(video_url, headers=headers, timeout=30, allow_redirects=True)
         head_response.raise_for_status()
         file_size = int(head_response.headers.get('Content-Length', 0))
         
@@ -1473,7 +1481,7 @@ def proxy_video():
                 end = min(end, file_size - 1)
                 
                 # Запрашиваем диапазон с удалённого сервера
-                headers = {'Range': f'bytes={start}-{end}'}
+                headers['Range'] = f'bytes={start}-{end}'
                 response = requests.get(video_url, headers=headers, timeout=60, stream=True)
                 response.raise_for_status()
                 
@@ -1486,11 +1494,14 @@ def proxy_video():
                 proxy_response.headers['Content-Length'] = str(end - start + 1)
                 proxy_response.headers['Content-Range'] = f'bytes {start}-{end}/{file_size}'
                 proxy_response.headers['Accept-Ranges'] = 'bytes'
-                proxy_response.headers['Content-Disposition'] = 'inline; filename="video"'
+                # КРИТИЧЕСКИ ВАЖНО: Устанавливаем inline и убираем любые следы attachment
+                proxy_response.headers['Content-Disposition'] = f'inline; filename*=UTF-8\'\'{os.path.basename(decoded_url)}'
+                # Убираем заголовки, которые могут вызвать скачивание в Edge
+                proxy_response.headers.pop('X-Download-Options', None)
                 return proxy_response
         
         # Если нет Range запроса или сервер не поддерживает ranges - отдаём всё видео
-        response = requests.get(video_url, timeout=60, stream=True)
+        response = requests.get(video_url, headers=headers, timeout=60, stream=True)
         response.raise_for_status()
         
         # Создаём ответ для клиента
@@ -1506,11 +1517,15 @@ def proxy_video():
 
         # Критически важные заголовки для воспроизведения вместо скачивания:
         # 1. Content-Disposition: inline - говорит браузеру отображать файл
-        proxy_response.headers['Content-Disposition'] = 'inline; filename="video"'
+        # Используем filename* для лучшей совместимости с UTF-8 именами
+        proxy_response.headers['Content-Disposition'] = f'inline; filename*=UTF-8\'\'{os.path.basename(decoded_url)}'
         # 2. Accept-Ranges: bytes - поддержка перемотки
         proxy_response.headers['Accept-Ranges'] = 'bytes'
         # 3. Cache-Control - кэширование для лучшей производительности
         proxy_response.headers['Cache-Control'] = 'public, max-age=3600'
+        # 4. Убираем заголовки, которые могут вызвать скачивание в Edge
+        proxy_response.headers.pop('X-Download-Options', None)
+        proxy_response.headers.pop('Content-Transfer-Encoding', None)
 
         return proxy_response
 
