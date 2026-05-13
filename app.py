@@ -30,7 +30,7 @@ from flask_limiter.util import get_remote_address
 # Импорт конфигурации из модуля settings
 from config.settings import (
     DATA_DIR, CATALOG_FILE, PERMANENT_FILE, USERS_FILE, PARSER_IMAGES_FILE, SECRET_KEY,
-    FTP_BASE_URL, PARSER_MAX_DEPTH, PARSER_TIMEOUT,
+    FTP_BASE_URL, PARSER_MAX_DEPTH, PARSER_TIMEOUT, PARSER_EXCLUDED_PATHS,
     RATELIMIT_STORAGE_URI, RATELIMIT_DEFAULT, RATELIMIT_LOGIN, RATELIMIT_ENABLED,
     LOGIN_VIEW, LOGIN_MESSAGE, SESSION_PROTECTION
 )
@@ -157,7 +157,7 @@ def run_parser_task():
         existing_images = set(existing_images_data.get('images', []))
         
         # Запустить парсинг FTP-каталога
-        items = parse_folder(FTP_BASE_URL, max_depth=PARSER_MAX_DEPTH, timeout=PARSER_TIMEOUT)
+        items = parse_folder(FTP_BASE_URL, max_depth=PARSER_MAX_DEPTH, timeout=PARSER_TIMEOUT, excluded_paths=PARSER_EXCLUDED_PATHS)
         
         # Собрать все найденные изображения из парсера
         new_parser_images = []
