@@ -25,4 +25,7 @@ venv/
 .mypy_cache/
 .pytest_cache/
 .gradle/
+# Данные пользователя - не коммитить
+data/*.json
+!data/.gitkeep
 ```
