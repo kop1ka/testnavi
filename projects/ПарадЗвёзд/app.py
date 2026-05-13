@@ -1,18 +1,23 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Flask приложение для "Парад Звёзд"
+Flask Blueprint для "Парад Звёзд"
+Интегрируется с основным приложением testnavi/app.py как дополнительный модуль
 Обслуживает статические файлы и предоставляет API для управления данными
 """
 
 import os
 import json
-from flask import Flask, request, jsonify, send_from_directory, send_file
-from flask_cors import CORS
+from flask import Blueprint, request, jsonify, send_from_directory, current_app
 from werkzeug.utils import secure_filename
 
-app = Flask(__name__, static_folder='.', static_url_path='')
-CORS(app)
+# Создание Blueprint для интеграции с основным приложением
+parad_zvezd_bp = Blueprint(
+    'parad_zvezd',
+    __name__,
+    static_folder='.',
+    static_url_path='/static'
+)
 
 # Папка для хранения данных
 DATA_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
@@ -60,13 +65,13 @@ def save_scenarios(data):
 
 # ==================== Статические файлы ====================
 
-@app.route('/')
+@parad_zvezd_bp.route('/')
 def index():
     """Главная страница"""
     return send_from_directory('.', 'index.html')
 
 
-@app.route('/<path:filename>')
+@parad_zvezd_bp.route('/<path:filename>')
 def serve_static(filename):
     """Обслуживание статических файлов"""
     return send_from_directory('.', filename)
@@ -74,7 +79,7 @@ def serve_static(filename):
 
 # ==================== API Авторизация ====================
 
-@app.route('/api/login', methods=['POST'])
+@parad_zvezd_bp.route('/api/login', methods=['POST'])
 def login():
     """Вход для администратора"""
     data = request.get_json()
@@ -89,14 +94,14 @@ def login():
 
 # ==================== API Номинации ====================
 
-@app.route('/api/nominations', methods=['GET'])
+@parad_zvezd_bp.route('/api/nominations', methods=['GET'])
 def get_all_nominations():
     """Получить все номинации"""
     data = load_nominations()
     return jsonify(data)
 
 
-@app.route('/api/nominations/<nomination_id>', methods=['GET'])
+@parad_zvezd_bp.route('/api/nominations/<nomination_id>', methods=['GET'])
 def get_nomination(nomination_id):
     """Получить записи конкретной номинации"""
     data = load_nominations()
@@ -104,7 +109,7 @@ def get_nomination(nomination_id):
     return jsonify(entries)
 
 
-@app.route('/api/nominations/<nomination_id>', methods=['POST'])
+@parad_zvezd_bp.route('/api/nominations/<nomination_id>', methods=['POST'])
 def add_nomination_entry(nomination_id):
     """Добавить запись в номинацию"""
     data = load_nominations()
@@ -121,7 +126,7 @@ def add_nomination_entry(nomination_id):
     return jsonify({'success': True, 'entry': entry})
 
 
-@app.route('/api/nominations/<nomination_id>/<entry_id>', methods=['PUT'])
+@parad_zvezd_bp.route('/api/nominations/<nomination_id>/<entry_id>', methods=['PUT'])
 def update_nomination_entry(nomination_id, entry_id):
     """Обновить запись в номинации"""
     data = load_nominations()
@@ -144,7 +149,7 @@ def update_nomination_entry(nomination_id, entry_id):
     return jsonify({'success': False, 'message': 'Запись не найдена'}), 404
 
 
-@app.route('/api/nominations/<nomination_id>/<entry_id>', methods=['DELETE'])
+@parad_zvezd_bp.route('/api/nominations/<nomination_id>/<entry_id>', methods=['DELETE'])
 def delete_nomination_entry(nomination_id, entry_id):
     """Удалить запись из номинации"""
     data = load_nominations()
@@ -161,14 +166,14 @@ def delete_nomination_entry(nomination_id, entry_id):
 
 # ==================== API Сценарии ====================
 
-@app.route('/api/scenarios', methods=['GET'])
+@parad_zvezd_bp.route('/api/scenarios', methods=['GET'])
 def get_scenarios():
     """Получить все сценарии"""
     data = load_scenarios()
     return jsonify(data)
 
 
-@app.route('/api/scenarios', methods=['POST'])
+@parad_zvezd_bp.route('/api/scenarios', methods=['POST'])
 def add_scenario():
     """Добавить сценарий"""
     data = load_scenarios()
@@ -182,7 +187,7 @@ def add_scenario():
     return jsonify({'success': True, 'scenario': scenario})
 
 
-@app.route('/api/scenarios/<scenario_id>', methods=['DELETE'])
+@parad_zvezd_bp.route('/api/scenarios/<scenario_id>', methods=['DELETE'])
 def delete_scenario(scenario_id):
     """Удалить сценарий"""
     data = load_scenarios()
@@ -190,16 +195,3 @@ def delete_scenario(scenario_id):
     save_scenarios(data)
     
     return jsonify({'success': True})
-
-
-# ==================== Запуск приложения ====================
-
-if __name__ == '__main__':
-    print("=" * 50)
-    print("🌟 Парад Звёзд - Flask сервер запущен!")
-    print("=" * 50)
-    print("Откройте в браузере: http://localhost:5000")
-    print("Логин: admin")
-    print("Пароль: anosov.museum")
-    print("=" * 50)
-    app.run(host='0.0.0.0', port=5000, debug=True)
