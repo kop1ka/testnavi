@@ -1,1 +1,2 @@
-Nothing needs to be added to .gitignore since only a single HTML file (`admin.html`) was modified and no build artifacts, dependencies, or temporary files were detected in the changes.
+(js/script.js is a source file, so no need to ignore it)
+(empty — output nothing)

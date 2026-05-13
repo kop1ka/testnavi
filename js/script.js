@@ -214,8 +214,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Проверяем, является ли файл видео по расширению в URL
                 if (isVideoFile(itemData.url)) {
-                    // Видео – открываем в новой вкладке
-                    window.open(itemData.url, '_blank');
+                    // Видео – открываем в текущей вкладке
+                    window.location.href = itemData.url;
                 } else {
                     // Остальные файлы – переход в текущей вкладке
                     window.location.href = itemData.url;
