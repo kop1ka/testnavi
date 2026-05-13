@@ -713,16 +713,8 @@ def get_catalog():
     
     # Добавляем проекты из папки projects напрямую в каталог (без создания папки projects)
     if os.path.exists(PROJECTS_DIR):
-        # Создаём словарь существующих проектов для быстрого поиска
-        existing_project_indices = {}
-        children = catalog.get('children') or []
-        for idx, item in enumerate(children):
-            if item and isinstance(item, dict):
-                url_val = item.get('url')
-                if url_val and str(url_val).startswith('/projects/'):
-                    project_name_from_url = url_val.split('/')[2]
-                    existing_project_indices[project_name_from_url.lower()] = idx
-        
+        # Собираем все проекты из файловой системы
+        project_items = []
         for project_name in os.listdir(PROJECTS_DIR):
             project_path = os.path.join(PROJECTS_DIR, project_name)
             if os.path.isdir(project_path):
@@ -760,42 +752,62 @@ def get_catalog():
                         'is_blueprint': True  # Флаг для Blueprint проектов
                     }
                 
-                # Проверяем, есть ли уже этот проект в каталоге
-                existing_idx = existing_project_indices.get(project_name.lower())
+                project_items.append({
+                    'name': project_name,
+                    'path': project_path,
+                    'index_html_path': index_html_path,
+                    'has_flask': has_flask
+                })
+        
+        # Создаём словарь существующих проектов для быстрого поиска
+        existing_project_indices = {}
+        children = catalog.get('children') or []
+        for idx, item in enumerate(children):
+            if item and isinstance(item, dict):
+                url_val = item.get('url')
+                if url_val and str(url_val).startswith('/projects/'):
+                    project_name_from_url = url_val.split('/')[2]
+                    existing_project_indices[project_name_from_url.lower()] = idx
+        
+        # Сначала удаляем все существующие проекты из каталога (сохраняя их настройки)
+        saved_project_settings = {}
+        for proj_info in project_items:
+            project_name = proj_info['name']
+            existing_idx = existing_project_indices.get(project_name.lower())
+            if existing_idx is not None:
+                existing_project = children[existing_idx]
+                # Сохраняем пользовательские настройки (иконку, имя)
+                icon_to_use = "page/logo.png"
+                if existing_project.get('icon'):
+                    existing_icon = existing_project.get('icon', '')
+                    if existing_icon and existing_icon.strip() != '' and existing_icon != 'page/logo.png':
+                        icon_to_use = existing_icon
                 
-                # Если проект уже существует, обновляем его вместо добавления нового
-                if existing_idx is not None:
-                    existing_project = children[existing_idx]
-                    # Сохраняем пользовательскую иконку если она есть
-                    icon_to_use = "page/logo.png"
-                    if existing_project.get('icon'):
-                        existing_icon = existing_project.get('icon', '')
-                        if existing_icon and existing_icon.strip() != '' and existing_icon != 'page/logo.png':
-                            icon_to_use = existing_icon
-                    
-                    children[existing_idx] = {
-                        "name": existing_project.get('name', project_name),
-                        "icon": icon_to_use,
-                        "children": None,
-                        "url": f"/projects/{project_name}/index.html",
-                        "modified": datetime.fromtimestamp(os.path.getmtime(index_html_path)).strftime('%Y-%m-%d %H:%M'),
-                        "permanent": True,
-                        "has_flask": has_flask
-                    }
-                else:
-                    # Проект не найден, добавляем новый
-                    project_item = {
-                        "name": project_name,
-                        "icon": "page/logo.png",
-                        "children": None,
-                        "url": f"/projects/{project_name}/index.html",
-                        "modified": datetime.fromtimestamp(os.path.getmtime(index_html_path)).strftime('%Y-%m-%d %H:%M'),
-                        "permanent": True,
-                        "has_flask": has_flask
-                    }
-                    catalog["children"].insert(0, project_item)
-                    # Обновляем индекс для будущих итераций
-                    existing_project_indices[project_name.lower()] = 0
+                saved_project_settings[project_name.lower()] = {
+                    'icon': icon_to_use,
+                    'name': existing_project.get('name', project_name)
+                }
+        
+        # Удаляем старые записи проектов из каталога (начиная с конца, чтобы индексы не сдвигались)
+        for project_name in sorted(existing_project_indices.keys(), key=lambda k: existing_project_indices[k], reverse=True):
+            idx = existing_project_indices[project_name]
+            children.pop(idx)
+        
+        # Добавляем все проекты в начало каталога в алфавитном порядке
+        for proj_info in sorted(project_items, key=lambda x: x['name']):
+            project_name = proj_info['name']
+            settings = saved_project_settings.get(project_name.lower(), {})
+            
+            project_item = {
+                "name": settings.get('name', project_name),
+                "icon": settings.get('icon', "page/logo.png"),
+                "children": None,
+                "url": f"/projects/{project_name}/index.html",
+                "modified": datetime.fromtimestamp(os.path.getmtime(proj_info['index_html_path'])).strftime('%Y-%m-%d %H:%M'),
+                "permanent": True,
+                "has_flask": proj_info['has_flask']
+            }
+            catalog["children"].insert(0, project_item)
     
     response = jsonify(catalog)
     # Добавляем заголовки для предотвращения кэширования API ответов
