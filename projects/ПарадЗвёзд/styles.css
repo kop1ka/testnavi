@@ -619,4 +619,204 @@ body {
         flex: 0 0 auto;
         width: 100%;
     }
+    
+    .admin-login {
+        position: static;
+        display: block;
+        text-align: center;
+        margin: 10px auto;
+        max-width: 300px;
+    }
+    
+    .hero-section,
+    .content-section {
+        padding: 40px 15px;
+    }
+    
+    .btn {
+        padding: 12px 25px;
+        font-size: 1rem;
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .scenario-card {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+    }
+    
+    .scenario-icon {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .icon-circle {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .file-icon {
+        font-size: 2rem;
+    }
+    
+    .scenario-actions {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .modal-content {
+        max-width: 95%;
+        margin: 10px;
+    }
+    
+    .modal-header {
+        padding: 15px 20px;
+    }
+    
+    .modal-body {
+        padding: 20px;
+    }
+}
+
+/* Планшеты (768px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .main-title {
+        font-size: 2.8rem;
+    }
+    
+    .subtitle {
+        font-size: 1.3rem;
+    }
+    
+    .section-title,
+    .page-title {
+        font-size: 2.2rem;
+    }
+    
+    .nominations-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .entry-photo {
+        flex: 0 0 250px;
+    }
+    
+    .entry-photo img {
+        height: 200px;
+    }
+}
+
+/* Мобильные телефоны (до 480px) */
+@media (max-width: 480px) {
+    .main-title {
+        font-size: 1.6rem;
+    }
+    
+    .subtitle {
+        font-size: 1rem;
+        padding: 0 10px;
+    }
+    
+    .section-title,
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .text-content {
+        font-size: 1rem;
+    }
+    
+    .cta-text {
+        font-size: 1.1rem;
+    }
+    
+    .hero-section,
+    .content-section {
+        min-height: auto;
+        padding: 30px 10px;
+    }
+    
+    .page-container {
+        padding: 30px 10px;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        font-size: 0.95rem;
+    }
+    
+    .nomination-btn {
+        padding: 20px 15px;
+        font-size: 1rem;
+    }
+    
+    .entry-card {
+        padding: 15px;
+    }
+    
+    .entry-description {
+        font-size: 1rem;
+    }
+    
+    .entry-actions {
+        flex-direction: column;
+    }
+    
+    .icon-circle {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .file-icon {
+        font-size: 1.5rem;
+    }
+    
+    .scenario-name {
+        font-size: 1.1rem;
+    }
+    
+    .scenario-date {
+        font-size: 0.85rem;
+    }
+    
+    .btn-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.3rem;
+    }
+}
+
+/* Большие экраны (от 1920px) */
+@media (min-width: 1920px) {
+    .container {
+        max-width: 1600px;
+    }
+    
+    .main-title {
+        font-size: 4.5rem;
+    }
+    
+    .subtitle {
+        font-size: 1.8rem;
+    }
+    
+    .section-title,
+    .page-title {
+        font-size: 3rem;
+    }
+    
+    .nominations-grid {
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 30px;
+    }
+    
+    .btn {
+        padding: 18px 45px;
+        font-size: 1.3rem;
+    }
 }
