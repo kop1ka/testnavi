@@ -1471,10 +1471,15 @@ def proxy_video():
                 proxy_response = Response(
                     response.iter_content(chunk_size=8192),
                     status=206,  # Partial Content
-                    content_type=content_type
+                    mimetype=content_type,
+                    headers={
+                        'Content-Range': f'bytes {start}-{end}/{file_size}',
+                        'Content-Length': str(end - start + 1),
+                        'Content-Disposition': 'inline',
+                        'Cache-Control': 'public, max-age=3600',
+                        'Accept-Ranges': 'bytes'
+                    }
                 )
-                proxy_response.headers['Content-Range'] = f'bytes {start}-{end}/{file_size}'
-                proxy_response.headers['Content-Length'] = str(end - start + 1)
             else:
                 # Если не удалось распарсить Range, загружаем весь файл
                 response = requests.get(video_url, timeout=30, stream=True)
