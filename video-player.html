@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Просмотр видео</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: #000;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .video-container {
+            width: 100%;
+            max-width: 100%;
+        }
+        
+        video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .error-message {
+            background: #fee;
+            color: #c00;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid #fcc;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        .loading {
+            text-align: center;
+            color: white;
+            padding: 40px;
+            font-size: 18px;
+        }
+        
+        .loading::after {
+            content: '';
+            animation: dots 1.5s infinite;
+        }
+        
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+    </style>
+</head>
+<body>
+    <div id="loading" class="loading">Загрузка видео</div>
+    
+    <div style="position: fixed; top: 20px; left: 20px; z-index: 100;">
+        <button onclick="window.close()" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 14px;">← Назад к каталогу</button>
+    </div>
+    
+    <div id="error" class="error-message" style="display: none;"></div>
+    
+    <div class="video-container" id="videoContainer" style="display: none;">
+        <video id="videoPlayer" controls preload="metadata">
+            Ваш браузер не поддерживает воспроизведение видео.
+        </video>
+    </div>
+    
+    <script>
+        // Получаем параметры из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const videoUrl = urlParams.get('url');
+        
+        if (!videoUrl) {
+            showError('URL видео не указан.');
+            hideLoading();
+        } else {
+            // Используем прокси для открытия видео в браузере
+            const proxyUrl = `/api/video-proxy?url=${encodeURIComponent(videoUrl.trim())}`;
+            
+            const videoPlayer = document.getElementById('videoPlayer');
+            const videoContainer = document.getElementById('videoContainer');
+            
+            // Устанавливаем источник видео через прокси
+            videoPlayer.src = proxyUrl;
+            
+            // Обработчики событий
+            videoPlayer.addEventListener('loadedmetadata', function() {
+                hideLoading();
+                videoContainer.style.display = 'block';
+                console.log('Видео загружено. Длительность:', videoPlayer.duration, 'сек');
+            });
+            
+            videoPlayer.addEventListener('error', function(e) {
+                hideLoading();
+                let errorMsg = 'Ошибка загрузки видео. ';
+                
+                if (videoPlayer.error) {
+                    switch(videoPlayer.error.code) {
+                        case 1: errorMsg += 'Загрузка прервана.'; break;
+                        case 2: errorMsg += 'Ошибка сети.'; break;
+                        case 3: errorMsg += 'Видео повреждено или формат не поддерживается.'; break;
+                        case 4: errorMsg += 'Формат видео не поддерживается браузером.'; break;
+                    }
+                }
+                
+                showError(errorMsg);
+                console.error('Ошибка видео:', e);
+            });
+            
+            videoPlayer.addEventListener('waiting', function() {
+                document.getElementById('loading').textContent = 'Буферизация...';
+                document.getElementById('loading').style.display = 'block';
+            });
+            
+            videoPlayer.addEventListener('playing', function() {
+                hideLoading();
+            });
+            
+            // Запускаем загрузку видео
+            videoPlayer.load();
+        }
+        
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
