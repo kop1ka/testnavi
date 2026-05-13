@@ -1369,7 +1369,31 @@
                 .then(data => {
                     // Выгружаем только children без главного каталога
                     const exportData = data.children || [];
-                    const jsonStr = JSON.stringify(exportData, null, 2);
+                    
+                    // Функция для очистки элемента от лишних полей
+                    function cleanItem(item) {
+                        if (!item) return null;
+                        
+                        const cleaned = {
+                            name: item.name,
+                            icon: item.icon,
+                            children: item.children,
+                            url: item.url || null,
+                            modified: item.modified
+                        };
+                        
+                        // Рекурсивно очищаем дочерние элементы
+                        if (item.children && Array.isArray(item.children)) {
+                            cleaned.children = item.children.map(child => cleanItem(child));
+                        }
+                        
+                        return cleaned;
+                    }
+                    
+                    // Очищаем все элементы
+                    const cleanedData = exportData.map(item => cleanItem(item));
+                    
+                    const jsonStr = JSON.stringify(cleanedData, null, 2);
                     const blob = new Blob([jsonStr], { type: 'application/json' });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
