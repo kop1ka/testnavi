@@ -840,15 +840,28 @@
         // Фильтрация списка родителей по поиску
         function filterParentList(query) {
             const parentItems = document.querySelectorAll('#parentList .parent-item');
+            let firstVisibleItem = null;
+            
             parentItems.forEach(item => {
                 const pathSpan = item.querySelector('span:last-child');
                 const pathText = pathSpan ? pathSpan.textContent.toLowerCase() : '';
                 if (query === '' || pathText.includes(query)) {
                     item.style.display = 'flex';
+                    if (!firstVisibleItem) {
+                        firstVisibleItem = item;
+                    }
                 } else {
                     item.style.display = 'none';
                 }
             });
+            
+            // Автоматически выбираем первый видимый элемент и устанавливаем его путь в addParentPath
+            if (firstVisibleItem) {
+                const path = firstVisibleItem.dataset.path;
+                document.querySelectorAll('.parent-item').forEach(el => el.classList.remove('selected'));
+                firstVisibleItem.classList.add('selected');
+                document.getElementById('addParentPath').value = path;
+            }
         }
 
         // Render parent list for adding new items
