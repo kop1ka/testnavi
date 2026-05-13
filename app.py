@@ -1397,6 +1397,7 @@ def proxy_video():
     
     Используется для открытия видео в браузере вместо скачивания.
     Устанавливает правильный Content-Type и убирает Content-Disposition: attachment.
+    Поддерживает Range requests для потоковой передачи.
     
     Query params:
         url: Полный URL видеофайла
@@ -1415,9 +1416,9 @@ def proxy_video():
         return jsonify({'error': 'Недоверенный домен'}), 403
     
     try:
-        # Загружаем видео с внешнего сервера
-        response = requests.get(video_url, timeout=30, stream=True)
-        response.raise_for_status()
+        # Сначала получаем информацию о файле (размер, тип контента)
+        head_response = requests.head(video_url, timeout=30, allow_redirects=True)
+        head_response.raise_for_status()
         
         # Определяем Content-Type по расширению файла
         video_content_types = {
@@ -1436,14 +1437,65 @@ def proxy_video():
         from urllib.parse import unquote
         decoded_url = unquote(video_url)
         ext = os.path.splitext(decoded_url)[1].lower()
-        content_type = video_content_types.get(ext, response.headers.get('Content-Type', 'video/mp4'))
+        content_type = video_content_types.get(ext, head_response.headers.get('Content-Type', 'video/mp4'))
         
-        # Создаём ответ с правильными заголовками для воспроизведения в браузере
-        proxy_response = Response(
-            response.iter_content(chunk_size=8192),
-            status=200,
-            content_type=content_type
-        )
+        # Получаем размер файла
+        file_size = int(head_response.headers.get('Content-Length', 0))
+        
+        # Проверяем поддержку Range запросов
+        supports_ranges = head_response.headers.get('Accept-Ranges', '').lower() == 'bytes'
+        
+        # Обрабатываем Range запросы от браузера
+        range_header = request.headers.get('Range')
+        
+        if range_header and supports_ranges:
+            # Парсим Range заголовок (формат: bytes=start-end)
+            range_match = re.match(r'bytes=(\d*)-(\d*)', range_header)
+            if range_match:
+                start = int(range_match.group(1)) if range_match.group(1) else 0
+                end = int(range_match.group(2)) if range_match.group(2) else file_size - 1
+                
+                # Ограничиваем end размером файла
+                end = min(end, file_size - 1)
+                
+                # Запрашиваем только нужный диапазон
+                response = requests.get(
+                    video_url,
+                    headers={'Range': f'bytes={start}-{end}'},
+                    timeout=30,
+                    stream=True
+                )
+                response.raise_for_status()
+                
+                # Создаём ответ с частичным контентом
+                proxy_response = Response(
+                    response.iter_content(chunk_size=8192),
+                    status=206,  # Partial Content
+                    content_type=content_type
+                )
+                proxy_response.headers['Content-Range'] = f'bytes {start}-{end}/{file_size}'
+                proxy_response.headers['Content-Length'] = str(end - start + 1)
+            else:
+                # Если не удалось распарсить Range, загружаем весь файл
+                response = requests.get(video_url, timeout=30, stream=True)
+                response.raise_for_status()
+                proxy_response = Response(
+                    response.iter_content(chunk_size=8192),
+                    status=200,
+                    content_type=content_type
+                )
+                proxy_response.headers['Content-Length'] = str(file_size)
+        else:
+            # Загружаем весь файл
+            response = requests.get(video_url, timeout=30, stream=True)
+            response.raise_for_status()
+            proxy_response = Response(
+                response.iter_content(chunk_size=8192),
+                status=200,
+                content_type=content_type
+            )
+            if file_size > 0:
+                proxy_response.headers['Content-Length'] = str(file_size)
         
         # Добавляем заголовки для потоковой передачи и кэширования
         proxy_response.headers['Cache-Control'] = 'public, max-age=3600'
