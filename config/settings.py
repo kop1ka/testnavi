@@ -13,7 +13,7 @@ PARSER_IMAGES_FILE = os.path.join(DATA_DIR, 'parser_images.json')
 # FTP парсер
 FTP_BASE_URL = 'https://vm-ftp.anosov.ru/vm/'
 PARSER_MAX_DEPTH = 10
-PARSER_TIMEOUT = 30
+PARSER_TIMEOUT = 5
 # Список URL путей которые следует исключить из парсинга
 PARSER_EXCLUDED_PATHS = [
     'https://vm-ftp.anosov.ru/vm/%D0%94%D0%BB%D1%8F%D0%A0%D0%B0%D0%B1%D0%BE%D1%82%D1%8B/',
