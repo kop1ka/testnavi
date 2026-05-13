@@ -58,7 +58,7 @@ def extract_items_from_html(html_content, base_url):
     return items
 
 
-def parse_folder(url, visited=None, depth=0, max_depth=10, timeout=10, max_workers=5, excluded_paths=None):
+def parse_folder(url, visited=None, depth=0, max_depth=10, timeout=10, max_workers=5):
     """
     Парсинг FTP-каталога с многопоточностью
     
@@ -69,7 +69,6 @@ def parse_folder(url, visited=None, depth=0, max_depth=10, timeout=10, max_worke
         max_depth: максимальная глубина парсинга
         timeout: таймаут запроса в секундах
         max_workers: количество потоков для параллельного парсинга
-        excluded_paths: список URL путей которые следует исключить из парсинга
     
     Returns:
         list: список элементов каталога
@@ -77,15 +76,7 @@ def parse_folder(url, visited=None, depth=0, max_depth=10, timeout=10, max_worke
     if visited is None:
         visited = set()
     
-    if excluded_paths is None:
-        from config.settings import PARSER_EXCLUDED_PATHS
-        excluded_paths = PARSER_EXCLUDED_PATHS
-    
     if depth > max_depth or url in visited:
-        return []
-    
-    # Проверка на исключение URL из парсинга
-    if url in excluded_paths:
         return []
     
     visited.add(url)
@@ -101,7 +92,7 @@ def parse_folder(url, visited=None, depth=0, max_depth=10, timeout=10, max_worke
         if folders_to_parse and depth < max_depth:
             with ThreadPoolExecutor(max_workers=max_workers) as executor:
                 future_to_item = {
-                    executor.submit(_parse_folder_recursive, item['url'], visited, depth + 1, max_depth, timeout, excluded_paths): item
+                    executor.submit(_parse_folder_recursive, item['url'], visited, depth + 1, max_depth, timeout): item
                     for item in folders_to_parse
                 }
                 
@@ -118,6 +109,6 @@ def parse_folder(url, visited=None, depth=0, max_depth=10, timeout=10, max_worke
         return []
 
 
-def _parse_folder_recursive(url, visited, depth, max_depth, timeout, excluded_paths=None):
+def _parse_folder_recursive(url, visited, depth, max_depth, timeout):
     """Вспомогательная функция для рекурсивного парсинга"""
-    return parse_folder(url, visited, depth, max_depth, timeout, excluded_paths=excluded_paths)
+    return parse_folder(url, visited, depth, max_depth, timeout)
