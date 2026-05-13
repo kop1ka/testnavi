@@ -286,6 +286,171 @@
             background: #667eea;
             color: white;
         }
+        
+        /* Адаптивность для мобильных устройств */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 20px;
+                margin-bottom: 10px;
+                text-align: center;
+            }
+            
+            .header-actions {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 8px;
+            }
+            
+            .btn {
+                padding: 8px 15px;
+                font-size: 13px;
+            }
+            
+            .container {
+                grid-template-columns: 1fr;
+                padding: 15px;
+                margin: 10px auto;
+            }
+            
+            .sidebar {
+                padding: 15px;
+            }
+            
+            .main-content {
+                padding: 15px;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab {
+                padding: 12px 15px;
+                border-bottom: none;
+                border-left: 3px solid transparent;
+            }
+            
+            .tab.active {
+                border-left-color: #667eea;
+                border-bottom: none;
+            }
+            
+            .images-grid {
+                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+                max-height: 300px;
+            }
+            
+            .image-item img {
+                height: 60px;
+            }
+            
+            .tree-container {
+                max-height: 400px;
+            }
+            
+            .parent-list {
+                max-height: 300px;
+            }
+        }
+        
+        /* Планшеты (769px - 1024px) */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .container {
+                grid-template-columns: 250px 1fr;
+            }
+            
+            .header h1 {
+                font-size: 22px;
+            }
+            
+            .btn {
+                padding: 9px 18px;
+                font-size: 13px;
+            }
+        }
+        
+        /* Мобильные телефоны (до 480px) */
+        @media (max-width: 480px) {
+            .header {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 18px;
+            }
+            
+            .header-actions {
+                width: 100%;
+            }
+            
+            .btn {
+                width: 100%;
+                padding: 10px;
+                font-size: 12px;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+            
+            .sidebar,
+            .main-content {
+                padding: 12px;
+            }
+            
+            .form-group input,
+            .form-group select,
+            .form-group textarea {
+                font-size: 13px;
+                padding: 8px;
+            }
+            
+            .images-grid {
+                grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+                max-height: 250px;
+            }
+            
+            .image-item img {
+                height: 50px;
+            }
+            
+            .tree-container {
+                max-height: 350px;
+            }
+            
+            .parent-list {
+                max-height: 250px;
+            }
+        }
+        
+        /* Большие экраны (от 1920px) */
+        @media (min-width: 1920px) {
+            .container {
+                max-width: 1800px;
+            }
+            
+            .header h1 {
+                font-size: 28px;
+            }
+            
+            .btn {
+                padding: 12px 25px;
+                font-size: 15px;
+            }
+            
+            .images-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+            
+            .image-item img {
+                height: 100px;
+            }
+        }
     </style>
 </head>
 <body>

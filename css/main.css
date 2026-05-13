@@ -649,6 +649,83 @@ body {
 }
 
 /* ============================================= */
+/* АДАПТАЦИЯ ПОД ПЛАНШЕТЫ (768px - 1024px) */
+/* ============================================= */
+@media (min-width: 768px) and (max-width: 1024px) {
+    /* Логотип */
+    .logo {
+        width: 140px;
+        top: 15px;
+        left: 15px;
+    }
+
+    /* Заголовок */
+    .nad3 {
+        font-size: 24px;
+        max-width: 80%;
+        white-space: normal;
+        text-align: center;
+        line-height: 1.3;
+    }
+
+    /* Центральное изображение */
+    .center-img {
+        max-width: 80vw;
+        max-height: 65vh;
+    }
+
+    .rama {
+        height: 600px;
+    }
+    .anosov {
+        height: 480px;
+    }
+    .nad {
+        height: 200px;
+    }
+
+    /* Кнопка каталога */
+    .button-catalog {
+        width: 280px;
+        height: 65px;
+        font-size: 26px;
+        bottom: 12%;
+    }
+
+    /* Сетка каталога - 3 колонки */
+    .item {
+        flex: 0 0 calc(32% - 20px);
+        min-width: 220px;
+        font-size: 17px;
+    }
+
+    .item-icon {
+        height: 160px;
+    }
+
+    .item-name {
+        padding: 13px 10px;
+        font-size: 17px;
+    }
+
+    /* Шапка каталога */
+    .catalog-title {
+        font-size: 22px;
+    }
+
+    .back-btn {
+        font-size: 15px;
+        padding: 9px 18px;
+    }
+
+    .close-btn {
+        font-size: 45px;
+        width: 45px;
+        height: 45px;
+    }
+}
+
+/* ============================================= */
 /* АДАПТАЦИЯ ПОД ПОРТРЕТНЫЙ РЕЖИМ 3:4 (ПЛАНШЕТЫ) */
 /* ============================================= */
 @media (orientation: portrait) and (min-aspect-ratio: 2/3) and (max-aspect-ratio: 4/5) {
