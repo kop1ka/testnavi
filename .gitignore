@@ -1,2 +1,4 @@
-# Documentation
-projects/ADDING_NEW_MODULES.md
+```
+__pycache__/
+*.pyc
+```
