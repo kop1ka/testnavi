@@ -197,12 +197,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Функция для получения прокси-URL для видео
     function getVideoProxyUrl(url) {
+        // Очищаем URL от пробелов и декодируем
+        const cleanUrl = decodeURIComponent(url.trim());
         // Проверяем, является ли URL внешним (с vm-ftp.anosov.ru)
-        if (url.includes('vm-ftp.anosov.ru')) {
-            return '/api/video-proxy?url=' + encodeURIComponent(url);
+        if (cleanUrl.includes('vm-ftp.anosov.ru')) {
+            return '/api/video-proxy?url=' + encodeURIComponent(cleanUrl);
         }
         // Для локальных или других URL возвращаем как есть
-        return url;
+        return cleanUrl;
     }
 
     function handleItemClick(event) {
