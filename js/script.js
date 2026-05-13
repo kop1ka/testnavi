@@ -228,8 +228,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Проверяем, является ли файл видео по расширению в URL
                 if (isVideoFile(itemData.url)) {
-                    // Видео – открываем в текущей вкладке через прокси
-                    window.location.href = getVideoProxyUrl(itemData.url);
+                    // Видео – открываем в новой вкладке через видеоплеер
+                    const videoPlayerUrl = `/video-player?url=${encodeURIComponent(itemData.url.trim())}&name=${encodeURIComponent(itemData.name)}`;
+                    window.open(videoPlayerUrl, '_blank');
                 } else {
                     // Остальные файлы – переход в текущей вкладке
                     window.location.href = itemData.url;

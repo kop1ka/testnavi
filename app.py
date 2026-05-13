@@ -696,6 +696,24 @@ def admin():
     return response
 
 
+@app.route('/video-player')
+def video_player():
+    """
+    Страница просмотра видео
+    
+    Открывает HTML страницу видеоплеера для воспроизведения видеофайлов.
+    
+    Returns:
+        Response: HTML файл video-player.html
+    """
+    response = send_from_directory('.', 'video-player.html')
+    # Добавляем заголовки для предотвращения кэширования HTML страниц
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
+
+
 @app.route('/api/catalog')
 def get_catalog():
     """
