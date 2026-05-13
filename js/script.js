@@ -189,8 +189,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----- НОВАЯ ФУНКЦИЯ: проверка, является ли файл видео -----
     function isVideoFile(url) {
         if (!url) return false;
+        // Очищаем URL от пробелов и декодируем проценты перед проверкой
+        const cleanUrl = decodeURIComponent(url.trim());
         const videoExtensions = /\.(mp4|webm|ogg|mov|avi|mkv|flv|wmv|m4v)$/i;
-        return videoExtensions.test(url);
+        return videoExtensions.test(cleanUrl);
     }
 
     // Функция для получения прокси-URL для видео
