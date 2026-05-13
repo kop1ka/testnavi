@@ -87,19 +87,26 @@
             hideLoading();
         } else {
             // Используем прокси для открытия видео в браузере
-            const proxyUrl = `/api/video-proxy?url=${encodeURIComponent(videoUrl.trim())}`;
+            // Очищаем URL от лишних пробелов перед кодированием
+            const cleanVideoUrl = videoUrl.trim();
+            const proxyUrl = `/api/video-proxy?url=${encodeURIComponent(cleanVideoUrl)}`;
             
             const videoPlayer = document.getElementById('videoPlayer');
             const videoContainer = document.getElementById('videoContainer');
             
             // Устанавливаем источник видео через прокси
             videoPlayer.src = proxyUrl;
+            videoPlayer.setAttribute('type', 'video/mp4');
+            videoPlayer.setAttribute('playsinline', '');
+            videoPlayer.setAttribute('webkit-playsinline', '');
             
-            // Обработчики событий
+            // Принудительно запускаем воспроизведение после загрузки метаданных
             videoPlayer.addEventListener('loadedmetadata', function() {
                 hideLoading();
                 videoContainer.style.display = 'block';
                 console.log('Видео загружено. Длительность:', videoPlayer.duration, 'сек');
+                // Пытаемся запустить воспроизведение (может быть заблокировано браузером без взаимодействия)
+                videoPlayer.play().catch(e => console.log('Автовоспроизведение заблокировано:', e));
             });
             
             videoPlayer.addEventListener('error', function(e) {
