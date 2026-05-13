@@ -1449,8 +1449,13 @@ def proxy_video():
         proxy_response.headers['Cache-Control'] = 'public, max-age=3600'
         proxy_response.headers['Accept-Ranges'] = 'bytes'
         
-        # Важно: НЕ устанавливаем Content-Disposition: attachment
-        # Это позволяет браузеру воспроизводить видео вместо скачивания
+        # Важно: Явно удаляем Content-Disposition если он есть
+        # Это предотвращает скачивание файла браузером
+        if 'Content-Disposition' in proxy_response.headers:
+            del proxy_response.headers['Content-Disposition']
+        
+        # Устанавливаем Content-Disposition: inline для принудительного отображения в браузере
+        proxy_response.headers['Content-Disposition'] = 'inline'
         
         return proxy_response
         
