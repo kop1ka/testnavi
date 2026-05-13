@@ -26,3 +26,7 @@ services:
 networks:
   app-network:
     driver: bridge
+
+# Для запуска выполните: docker compose up -d --build
+# Приложение будет доступно по адресу: http://localhost:5000
+# Данные сохраняются в папке ./data через volume
