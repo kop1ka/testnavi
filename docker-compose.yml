@@ -8,7 +8,7 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - ./data:/app/data
+      - app-data:/app/data
     environment:
       - FLASK_ENV=production
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
@@ -27,6 +27,12 @@ networks:
   app-network:
     driver: bridge
 
+volumes:
+  app-data:
+    driver: local
+
 # Для запуска выполните: docker compose up -d --build
 # Приложение будет доступно по адресу: http://localhost:5000
-# Данные сохраняются в папке ./data через volume
+# Данные сохраняются в именованном томе 'app-data', управляемом Docker
+# Для просмотра данных: docker volume inspect app-data
+# Для удаления данных: docker volume rm app-data
