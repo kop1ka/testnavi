@@ -251,3 +251,4 @@ tcl_library
 
 # Original rules preserved
 *.log
+DEPLOY.md 
