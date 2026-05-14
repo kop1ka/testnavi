@@ -1,17 +1,253 @@
-```
-# Python
+# Docker related
+.dockerenv
+Dockerfile
+docker-compose*.yml
+!docker-compose.yml
+
+# Environment variables
+.env
+.env.local
+.env.*
+
+# Dependencies
+node_modules/
+venv/
+.venv/
 __pycache__/
+*.egg-info/
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Build artifacts
+build/
+dist/
 *.pyc
 *.pyo
 *.pyd
+*.so
+*.dylib
+*.dll
+*.exe
+*.o
+*.a
+*.obj
+*.out
 
-# Dependencies
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE specific
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.tmp
+
+# Testing and coverage
+.coverage
+coverage/
+htmlcov/
+.nyc_output/
+istanbul/
+.mypy_cache/
+.pytest_cache/
+.tox/
+.hypothesis/
+
+# Distribution / packaging
+*.tar.gz
+*.whl
+*.zip
+*.gz
+*.bz2
+*.xz
+*.7z
+*.rar
+*.zst
+*.lz4
+*.lzh
+*.cab
+*.arj
+*.rpm
+*.deb
+*.Z
+*.lz
+*.lzo
+
+# Java/Maven/Gradle
+target/
+.gradle/
+*.class
+*.jar
+*.war
+*.ear
+
+# Go
+*.a
+*.o
+go.mod
+go.sum
+
+# C/C++
+*.i
+*.s
+*.mod
+*.ilk
+*.pdb
+*.aps
+*.ncb
+*.opt
+*.plg
+*.vcproj
+*.user
+*.userosscache
+*.sln.docstates
+
+# Rust
+Cargo.lock
+target/
+
+# Julia
+julia-*/
+
+# Zig
+zig-out/
+zig-cache/
+
+# Node.js
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
 venv/
+ENV/
 .venv/
-.env
-.env.local
-*.env.*
+env.bak/
+venv.bak/
 
-# Docker
-.dockerignore
-```
+# Ruby
+*.gem
+*.rbc
+.bundle/
+config.ru
+Gemfile.lock
+
+# PHP
+vendor/
+composer.phar
+composer.lock
+
+# C#
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+bin/
+obj/
+
+# Android
+*.apk
+*.ap_
+local.properties
+.settings/
+loadavg
+
+# Elixir
+.erlang.cookie
+.eunit
+*.beam
+*.plt
+*.xref
+deps/
+_*
+
+# Elm
+elm-stuff/
+*.elmi
+*.elmo
+
+# Haskell
+dist-newstyle/
+*.o
+*.hi
+*.chi
+*.chs.h
+*.dyn_o
+*.dyn_hi
+.hpc
+.hsenv
+.cabal-sandbox/
+cabal.sandbox.config
+*.prof
+*.vix
+*.tix
+
+# Lua
+*.lua~
+*.luac
+
+# Perl
+*.o
+*.plc
+*.pm.typed
+blib/
+Build/
+_build/
+cover_db/
+inc/
+.lwpcookies
+perl-*
+*.provimrplugininfo
+
+# R
+.Rhistory
+.Rprofile
+.RData
+.Rproj.user/
+.Ruserdata/
+packrat/lib-R/
+packrat/src/
+
+# Scala
+*.class
+*.log
+.libs/
+work/
+
+# Swift
+*.xcodeproj/
+*.xcworkspace/
+*.swiftpm/
+Packages/
+.build/
+
+# Tcl
+*.tcl
+tclIndex
+tk_library
+tcl_library
+
+# Visual Studio Code
+.vscode/settings.json
+!.vscode/settings.json
+
+# Original rules preserved
+*.log
